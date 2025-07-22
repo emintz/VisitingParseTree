@@ -25,6 +25,7 @@
 #define ATTRNODE_H_
 
 #include "Attribute.h"
+#include "AttributeFunction.h"
 #include "Host.h"
 
 #include <unordered_map>
@@ -59,6 +60,12 @@ public:
 
   int attribute_count(void) const {
     return attributes_.size();
+  }
+
+  void for_all_attributes(AttributeFunction& f) {
+    for (const auto&[key, value] : attributes_) {
+      f(key, value);
+    }
   }
 
   std::optional<const std::string> get(const Attribute& attribute) {

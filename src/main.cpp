@@ -23,6 +23,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "AttributeFunction.h"
 #include "AttrNode.h"
 #include "Host.h"
 #include "Node.h"
@@ -328,6 +329,19 @@ public:
   }
 };
 
+class AttributePrinter : public VisitingParseTree::AttributeFunction {
+public:
+
+  virtual ~AttributePrinter() {
+  }
+
+  virtual void operator() (
+      const VisitingParseTree::Attribute* const& key,
+      const std::string& value) override {
+    std::cout << '[' << key->name() << ": " << value << "] ";
+  }
+};
+
 static int test_node(void) {
   std::cout << "Node type name: " << TestNode::static_supplier().class_name() << std::endl;
   auto shared_node = TestNode::static_supplier().make_shared();
@@ -398,6 +412,7 @@ static std::string attr_value(std::shared_ptr<TestAttrNode> node, const TestAttr
 
 static int test_attr(void) {
   auto root = NameNode::SUPPLIER.make_shared();
+  AttributePrinter printer;
   std::cout << "Root attributed node type: " << root->type_name()
       << " with " << root->attribute_count() << " attributes." << std::endl;
   root->set(TestAttribute::NAME, "Metuchen");
@@ -421,9 +436,15 @@ static int test_attr(void) {
   auto first_child = root->child(0);
   std::cout << "First child NAME: " << attr_value(first_child, TestAttribute::NAME)
       << ", STREET: " << attr_value(first_child, TestAttribute::STREET) << std::endl;
+  std::cout << "  Attribute dump: ";
+  first_child->for_all_attributes(printer);
+  std::cout << std::endl;
   auto second_child = root->child(1);
   std::cout << "Second child NAME: " << attr_value(second_child,TestAttribute::NAME)
       << ", STREET: " << attr_value(second_child, TestAttribute::STREET) << std::endl;
+  std::cout << "  Attribute dump: ";
+  second_child->for_all_attributes(printer);
+  std::cout << std::endl;
 
   AttrNodeDumper on_entry("entry");
   AttrNodeDumper on_exit("exit");
