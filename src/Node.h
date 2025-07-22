@@ -229,11 +229,11 @@ public:
     return !parent_.use_count();
   }
 
-  bool operator==(const std::shared_ptr<T>& that) {
+  virtual bool operator==(const std::shared_ptr<T>& that) final {
     return same_node_as(that);
   }
 
-  bool operator!=(const std::shared_ptr<T>& that) {
+  virtual bool operator!=(const std::shared_ptr<T>& that) final {
     return !same_node_as(that);
   }
 

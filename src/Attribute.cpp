@@ -45,4 +45,12 @@ Attribute::Attribute(const char *name) :
 Attribute::~Attribute() {
 }
 
+bool Attribute::operator==(const Attribute& that) const {
+  return this == &that;
+}
+
+bool Attribute::operator!=(const Attribute& that) const {
+  return this != &that;
+}
+
 } /* namespace VisitingParseTree */

@@ -66,6 +66,9 @@ public:
 
   }
 
+  virtual ~VisitingTraversal() {
+  }
+
   virtual TraversalStatus operator() (std::shared_ptr<T> root) {
     return traversal_(root);
   }

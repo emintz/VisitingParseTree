@@ -65,11 +65,11 @@ public:
    */
   virtual std::shared_ptr<T> make_shared(void) = 0;
 
-  bool operator==(const Supplier& that) const {
+  virtual bool operator==(const Supplier& that) const final {
     return this == &that;
   }
 
-  bool operator!=(const Supplier& that) const {
+  virtual bool operator!=(const Supplier& that) const final {
     return this != &that;
   }
 };

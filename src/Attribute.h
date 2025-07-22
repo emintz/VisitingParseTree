@@ -47,6 +47,10 @@ protected:
 public:
   virtual ~Attribute();
 
+  virtual bool operator==(const Attribute& that) const final;
+
+  virtual bool operator!=(const Attribute& that) const final;
+
   inline size_t hash(void) const {
     return static_cast<size_t>(hash_);
   }

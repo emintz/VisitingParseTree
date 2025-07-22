@@ -172,6 +172,9 @@ protected:
   }
 
 public:
+  virtual ~TestAttrNodeVisitor() {
+  }
+
   virtual VisitingParseTree::TraversalStatus
       process_test_attr_node(TestAttrNode *host) = 0;
 };
@@ -253,6 +256,9 @@ protected:
   }
 
 public:
+  virtual ~PersonNodeVisitor() {
+  }
+
   virtual VisitingParseTree::TraversalStatus process_person_node(PersonNode *host) = 0;
 };
 
