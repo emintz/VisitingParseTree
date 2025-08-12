@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package org.ooarchitect.visitingparsetree.nodegenerator.generator;
+package com.ooarchitect.visitingparsetree.nodegenerator.generator;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -62,7 +62,7 @@ public class CppEmitter {
      * @return the method name, as above
      */
     private static String toProcessMethod(String nodeClassName) {
-        return "process_" + nodeClassName;
+        return "process" + nodeClassName;
     }
 
     /**
@@ -126,7 +126,7 @@ public class CppEmitter {
                 .append("#include <Supplier.h>\n")
                 .append("#include <TraversalStatus.h>\n")
                 .append('\n')
-                .append("#include <std>\n")
+                .append("#include <memory>\n")
                 .append('\n');
     }
 
@@ -227,6 +227,7 @@ public class CppEmitter {
             String superclassName)
             throws IOException {
         nodeClassPreamble(nodeClassName, superclassName)
+                .append("protected:\n")
                 .append("  ").append(nodeClassName).append("(void);\n")
                 .append('\n')
                 .append("public:\n")
@@ -272,14 +273,16 @@ public class CppEmitter {
             String superclassName) throws IOException{
         String withinClass = nodeClassName + "::";
         nodeImplementation(nodeClassName, superclassName)
-                .append(withinClass).append(toSupplierName(nodeClassName)).append(" SUPPLIER;\n")
+                .append(withinClass)
+                    .append(toSupplierName(nodeClassName))
+                    .append(' ')
+                    .append(withinClass)
+                    .append("SUPPLIER;\n")
                 .append('\n')
                 .append(baseSupplierClass).append("& ").append(withinClass).append("supplier(void) {\n")
                 .append("  return SUPPLIER;\n")
                 .append("}\n")
-                .append('\n')
-        ;
-
+                .append('\n');
     }
 
     /**
@@ -299,9 +302,7 @@ public class CppEmitter {
                 .append(withinClass).append(nodeClassName).append("() :\n")
                 .append("    ")
                     .append(superclassName)
-                    .append("(\"")
-                    .append(nodeClassName)
-                    .append("\") {}\n")
+                    .append("() {}\n")
                 .append('\n')
                 .append(withinClass).append('~').append(nodeClassName).append("() {}\n")
                 .append('\n')
@@ -341,7 +342,7 @@ public class CppEmitter {
                 .append("    virtual std::shared_ptr<")
                     .append(classHierarchyRoot)
                     .append("> make_shared(void) override;\n")
-                .append("  }\n")
+                .append("  };\n")
         ;
     }
 
@@ -376,7 +377,7 @@ public class CppEmitter {
                     .append(" *node = new ")
                     .append(nodeClassName)
                     .append("();\n")
-                .append("  return std::make_shared<")
+                .append("  return std::shared_ptr<")
                     .append(classHierarchyRoot)
                     .append(">(node);\n")
                 .append("}\n");
@@ -395,7 +396,7 @@ public class CppEmitter {
                 .append("class ").append(visitorClassName).append(" {\n")
                 .append("public:\n")
                 .append("  virtual ~").append(visitorClassName).append("();\n")
-                .append("  " + TRAVERSAL_STATUS + " process")
+                .append("  virtual " + TRAVERSAL_STATUS + " process")
                     .append(nodeClassName)
                     .append('(')
                     .append(nodeClassName)
@@ -436,7 +437,7 @@ public class CppEmitter {
         this.currentTime = CURRENT_TIME;
         this.userName = USER_NAME;
         this.classHierarchyRoot = context.classHierarchyRoot();
-        this.baseSupplierClass = this.classHierarchyRoot + "Supplier";
+        this.baseSupplierClass = "VisitingParseTree::Supplier<VisitingParseTree::BaseAttrNode>" ;
     }
 
     /**
@@ -485,7 +486,10 @@ public class CppEmitter {
                 } else {
                     concreteNodeDeclaration(currentNode, currentSuperclass);
                     concreteNodeImplementation(currentNode, currentSuperclass);
+                    supplierImplementation(currentNode);
                 }
+                visitorDeclaration(currentNode);
+                visitorImplementation(currentNode);
                 emitted.add(currentNode);
             }
         }
@@ -498,9 +502,11 @@ public class CppEmitter {
      */
     void emit() throws IOException {
         declarationHeader();
+        implementationHeader();
+
+        nodes();
+
         declarationFooter();
 
-        implementationHeader();
-        nodes();
     }
 }

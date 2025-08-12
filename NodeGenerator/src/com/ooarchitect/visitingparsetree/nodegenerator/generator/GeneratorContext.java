@@ -20,7 +20,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package org.ooarchitect.visitingparsetree.nodegenerator.generator;
+package com.ooarchitect.visitingparsetree.nodegenerator.generator;
 
 import com.google.common.collect.ImmutableSetMultimap;
 import java.util.ArrayList;

@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package org.ooarchitect.visitingparsetree.nodegenerator.generator;
+package com.ooarchitect.visitingparsetree.nodegenerator.generator;
 
 import com.google.common.collect.ImmutableSetMultimap;
 
@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import org.ooarchitect.visitingparsetree.nodegenerator.generator.GeneratorContext.NodeClassAndSuperclass;
+import com.ooarchitect.visitingparsetree.nodegenerator.generator.GeneratorContext.NodeClassAndSuperclass;
 
 import static com.google.common.truth.Truth.assertThat;
 

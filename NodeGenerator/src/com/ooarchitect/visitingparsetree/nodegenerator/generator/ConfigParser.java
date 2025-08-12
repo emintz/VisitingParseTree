@@ -18,13 +18,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package org.ooarchitect.visitingparsetree.nodegenerator.generator;
+package com.ooarchitect.visitingparsetree.nodegenerator.generator;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.ooarchitect.visitingparsetree.nodegenerator.grammar.NodeGenerationLexer;
-import org.ooarchitect.visitingparsetree.nodegenerator.grammar.NodeGenerationParser;
+import com.ooarchitect.visitingparsetree.nodegenerator.grammar.NodeGenerationLexer;
+import com.ooarchitect.visitingparsetree.nodegenerator.grammar.NodeGenerationParser;
 
 import java.io.IOException;
 import java.nio.file.Path;
