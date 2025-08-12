@@ -94,6 +94,20 @@ public class CppEmitter {
         return withinClass(nodeClassName) + toSupplierName(nodeClassName) + "::";
     }
 
+    private void closeNamespaces(Appendable target) throws IOException {
+        for (String namespace : context.namespaces()) {
+            target.append("}\n");
+        }
+    }
+
+    private void openNamespaces(Appendable target) throws IOException {
+        for (String namespace : context.namespaces()) {
+            target.append("namespace ")
+                    .append(namespace)
+                    .append(" {\n");
+        }
+    }
+
     /**
      * Emit the boilerplate comments at the beginning of the file.
      *
@@ -194,6 +208,7 @@ public class CppEmitter {
                 .append('\n')
                 .append("#include <memory>\n")
                 .append('\n');
+        openNamespaces(declarationTarget);
     }
 
     /**
@@ -204,17 +219,23 @@ public class CppEmitter {
      */
     @VisibleForTesting
     void declarationFooter() throws IOException {
+        closeNamespaces(declarationTarget);
         String guard = context.nodeClass().toUpperCase() + "_H_";
         declarationTarget.append('\n')
                 .append("#endif // ").append(guard).append('\n');
     }
 
+    void implementationFooter() throws IOException {
+        closeNamespaces(implementationTarget);
+    }
+
     @VisibleForTesting
     Appendable implementationHeader() throws IOException {
-        return fileHeader(implementationTarget)
+        fileHeader(implementationTarget)
                 .append("#include \"").append(context.declarationFilename()).append("\"\n")
                 .append('\n');
-
+        openNamespaces(implementationTarget);
+        return implementationTarget;
     }
 
     /**
@@ -575,6 +596,7 @@ public class CppEmitter {
         attributeImplementation();
 
         declarationFooter();
+        implementationFooter();
 
     }
 }
