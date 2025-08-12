@@ -48,6 +48,7 @@ public class GeneratorContext {
 
     private final String classHierarchyRoot;
     private final String hierarchyRootHeader;
+    private final String inputFileName;
     private final String declarationFilename;
     private final String implementationFilename;
     private final ArrayList<String> attributes;
@@ -60,9 +61,11 @@ public class GeneratorContext {
     GeneratorContext(
             String classHierarchyRoot,
             String hierarchyRootHeader,
-            String outputFileStem) {
+            String outputFileStem,
+            String inputFileName) {
         this.classHierarchyRoot = classHierarchyRoot;
         this.hierarchyRootHeader = hierarchyRootHeader;
+        this.inputFileName = inputFileName;
         declarationFilename = outputFileStem + ".h";
         implementationFilename = outputFileStem + ".cpp";
         attributes = new ArrayList<>();
@@ -105,6 +108,10 @@ public class GeneratorContext {
 
     public String hierarchyRootHeader() {
         return hierarchyRootHeader;
+    }
+
+    public String inputFileName() {
+        return inputFileName;
     }
 
     public ArrayList<String> namespaces() {

@@ -26,9 +26,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import com.ooarchitect.visitingparsetree.nodegenerator.grammar.NodeGenerationLexer;
 import com.ooarchitect.visitingparsetree.nodegenerator.grammar.NodeGenerationParser;
 
-import java.io.IOException;
-import java.nio.file.Path;
-
 /**
  * Wrapper around the generated node configuration file parser. This
  * is a convenience class for use by the code generator. The
@@ -48,14 +45,18 @@ public class ConfigParser {
      */
     private ConfigParser(
             CharStream configuration,
-            String classHierarchyRoot, String outputFileStem) {
+            String classHierarchyRoot,
+            String outputFileStem,
+            String inputFileName) {
         NodeGenerationLexer lexer =
                 new NodeGenerationLexer(configuration);
         // TODO: error handling
         CommonTokenStream tokenStream = new CommonTokenStream(lexer);
         generatorContext = new GeneratorContext(
-                classHierarchyRoot, "BaseAttrNode.h",
-                outputFileStem);
+                classHierarchyRoot,
+                "BaseAttrNode.h",
+                outputFileStem,
+                inputFileName);
         NodeListener listener = new NodeListener(
                 generatorContext, classHierarchyRoot);
         parser = new NodeGenerationParser(tokenStream);
@@ -77,8 +78,13 @@ public class ConfigParser {
     public static ConfigParser fromCharStream(
             CharStream input,
             String defaultBaseNodeClass,
-            String outputFileStem) {
-        return new ConfigParser(input, defaultBaseNodeClass, outputFileStem);
+            String outputFileStem,
+            String inputFileName) {
+        return new ConfigParser(
+                input,
+                defaultBaseNodeClass,
+                outputFileStem,
+                inputFileName);
     }
 
     /**
@@ -103,60 +109,7 @@ public class ConfigParser {
         return new ConfigParser(
                 CharStreams.fromString(input),
                 defaultBaseNodeClass,
-                outputFileStem);
-    }
-
-    /**
-     * Builds a parser that takes its input from the specified file
-     *
-     * @param fileName             name of a file containing a node configuration
-     *                             that is encoded in UTF-8
-     * @param defaultBaseNodeClass the root for the generated
-     *                             node class hierarchy. The
-     *                             generator bases all unqualified
-     *                             nodes on this class.
-     * @param outputFileStem       stem for the generated header and c++ files,
-     *                             the filename up to '.h' or .cpp
-     * @return a {@code ConfigParser} that will parse the contents
-     * of the specified file.
-     * @throws IOException if the file does not exist or cannot
-     *                     be opened
-     */
-    public static ConfigParser fromFileName(
-            String fileName,
-            String defaultBaseNodeClass,
-            String outputFileStem)
-            throws IOException {
-        return new ConfigParser(
-                CharStreams.fromFileName(fileName),
-                defaultBaseNodeClass,
-                outputFileStem);
-    }
-
-    /**
-     * Builds a parser that takes its input from the specified file
-     *
-     * @param filePath             qualified path of a file containing a node
-     *                             configuration that is encoded in UTF-8
-     * @param defaultBaseNodeClass the root for the generated
-     *                             node class hierarchy. The
-     *                             generator bases all unqualified
-     *                             nodes on this class.
-     * @param outputFileStem       stem for the generated header and c++ files,
-     *                             the filename up to '.h' or .cpp
-     * @return a {@code ConfigParser} that will parse the contents
-     * of the specified file.
-     * @throws IOException if the file does not exist or cannot
-     *                     be opened
-     */
-    public static ConfigParser fromPath(
-            Path filePath,
-            String defaultBaseNodeClass,
-            String outputFileStem)
-            throws IOException {
-        return new ConfigParser(
-                CharStreams.fromPath(filePath),
-                defaultBaseNodeClass,
-                outputFileStem);
+                outputFileStem,
+                "");
     }
 }

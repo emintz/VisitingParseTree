@@ -124,6 +124,7 @@ public class CppEmitter {
                     .append(" by ")
                     .append(userName.get())
                     .append(".\n")
+                .append(" * Source: ").append(context.inputFileName()).append('\n')
                 .append(" */\n")
                 .append('\n');
     }

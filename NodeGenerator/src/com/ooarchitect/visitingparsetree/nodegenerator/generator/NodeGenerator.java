@@ -14,12 +14,14 @@ public class NodeGenerator {
         private AutoCloseableAppendable cppOutput;
         private AutoCloseableAppendable headerOutput;
         private String fileStem;
+        private String inputFileName;
 
         private Builder() {
             input = null;
             cppOutput = null;
             headerOutput = null;
             fileStem = null;
+            inputFileName = "";
         }
 
         public Builder generatedFileStem(String fileStem) {
@@ -35,6 +37,7 @@ public class NodeGenerator {
         public Builder inputFromFile(String fileName)
                 throws IOException {
             input = CharStreams.fromFileName(fileName);
+            inputFileName = fileName;
             return this;
         }
 
@@ -63,7 +66,7 @@ public class NodeGenerator {
         }
 
         public NodeGenerator build() {
-            return new NodeGenerator(input, cppOutput, headerOutput, fileStem);
+            return new NodeGenerator(input, cppOutput, headerOutput, fileStem, inputFileName);
         }
     }
 
@@ -79,23 +82,27 @@ public class NodeGenerator {
     private final CharStream input;
     private final AutoCloseableAppendable cppOutput;
     private final AutoCloseableAppendable headerOutput;
+    private final String inputFileName;
 
     private NodeGenerator(
             CharStream input,
             AutoCloseableAppendable cppOutput,
             AutoCloseableAppendable headerOutput,
-            String fileStem) {
+            String fileStem,
+            String inputFileName) {
         this.input = input;
         this.cppOutput = cppOutput;
         this.headerOutput = headerOutput;
         this.fileStem = fileStem;
+        this.inputFileName = inputFileName;
     }
 
     public void generate() throws IOException {
         GeneratorContext genCtx = ConfigParser.fromCharStream(
                 input,
                 DEFAULT_BASE_CLASS,
-                fileStem).parse();
+                fileStem,
+                inputFileName).parse();
         try (headerOutput; cppOutput) {
             new CppEmitter(headerOutput, cppOutput, genCtx)
                     .emit();
