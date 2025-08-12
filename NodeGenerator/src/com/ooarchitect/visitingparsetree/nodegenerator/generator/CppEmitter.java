@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.HashSet;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class CppEmitter {
@@ -93,6 +94,13 @@ public class CppEmitter {
         return withinClass(nodeClassName) + toSupplierName(nodeClassName) + "::";
     }
 
+    /**
+     * Emit the boilerplate comments at the beginning of the file.
+     *
+     * @param target Appendable that receives the generated header
+     * @return target, for chaining
+     * @throws IOException if appending failed
+     */
     private Appendable fileHeader(Appendable target) throws IOException {
         return target.append("/**\n")
                 .append(" * Generated code, please DO NOT modify\n")
@@ -104,6 +112,63 @@ public class CppEmitter {
                     .append(".\n")
                 .append(" */\n")
                 .append('\n');
+    }
+
+    /**
+     * Declare attributes if the configuration specifies any. Does
+     * nothing if the user does not request attributes.
+     *
+     * @throws IOException on error
+     */
+    void attributeDeclaration() throws IOException {
+        List<String> attributes = context.attributes();
+        if (!attributes.isEmpty()) {
+            String attributeClass = context.attributeClass();
+            declarationTarget
+                    .append('\n')
+                    .append("class ")
+                        .append(attributeClass)
+                    .append(" : ")
+                    .append("VisitingParseTree::Attribute")
+                        .append(" {\n")
+                    .append("  ")
+                        .append(attributeClass)
+                        .append("(const char *name);\n")
+                    .append("public:\n");
+            for (String name : context.attributes()) {
+                declarationTarget
+                        .append("  static ")
+                            .append(attributeClass)
+                            .append(' ')
+                            .append(name)
+                            .append(";\n");
+            }
+            declarationTarget.append("};\n");
+        }
+    }
+
+    void attributeImplementation() throws IOException {
+        String attributeClass = context.attributeClass();
+        if (!context.attributes().isEmpty()) {
+            implementationTarget
+                    .append(attributeClass)
+                    .append("::")
+                    .append(attributeClass)
+                    .append("(const char *name) :\n")
+                    .append("    VisitingParseTree::Attribute(name) {}\n");
+            for (String name: context.attributes()) {
+                implementationTarget
+                        .append('\n')
+                        .append(attributeClass)
+                            .append(' ')
+                            .append(attributeClass)
+                            .append("::")
+                            .append(name)
+                            .append("(\"")
+                            .append(name)
+                            .append("\");\n");
+            }
+        }
     }
 
     /**
@@ -123,6 +188,7 @@ public class CppEmitter {
                     .append(context.hierarchyRootHeader())
                     .append(">\n")
                 .append("\n")
+                .append("#include <Attribute.h>\n")
                 .append("#include <Supplier.h>\n")
                 .append("#include <TraversalStatus.h>\n")
                 .append('\n')
@@ -505,6 +571,8 @@ public class CppEmitter {
         implementationHeader();
 
         nodes();
+        attributeDeclaration();
+        attributeImplementation();
 
         declarationFooter();
 
