@@ -48,8 +48,15 @@ class BaseAttrNode: public AttrNode<BaseAttrNode> {
   BaseAttrNode& operator=(const BaseAttrNode &other) = delete;
   BaseAttrNode& operator=(BaseAttrNode &&other) = delete;
 
+protected:
   inline BaseAttrNode() {
   }
+
+  class BaseAttrNodeSupplier : public Supplier<BaseAttrNode> {
+  protected:
+    BaseAttrNodeSupplier(const char *class_name) :
+      Supplier<BaseAttrNode>(class_name) {}
+  };
 
 public:
 

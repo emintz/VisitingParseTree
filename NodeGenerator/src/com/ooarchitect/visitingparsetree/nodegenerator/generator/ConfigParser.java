@@ -35,24 +35,29 @@ import java.nio.file.Path;
  * ANTLR-generated classes SHOULD NOT be access directly.
  */
 public class ConfigParser {
-    GeneratorContext generatorContext = new GeneratorContext();
-    NodeGenerationParser parser;
+    private final GeneratorContext generatorContext;
+    private final NodeGenerationParser parser;
 
     /**
      * Constructor
      *
-     * @param configuration {@link CharStream} providing the coonfiguration
+     * @param configuration      {@link CharStream} providing the configuration
+     * @param classHierarchyRoot node hierarchy root class
+     * @param outputFileStem       stem for the generated header and c++ files,
+     *                             the filename up to '.h' or .cpp
      */
     private ConfigParser(
             CharStream configuration,
-            String defaulBaseNodeClass) {
+            String classHierarchyRoot, String outputFileStem) {
         NodeGenerationLexer lexer =
                 new NodeGenerationLexer(configuration);
         // TODO: error handling
         CommonTokenStream tokenStream = new CommonTokenStream(lexer);
-        generatorContext = new GeneratorContext();
+        generatorContext = new GeneratorContext(
+                classHierarchyRoot, "BaseAttrNode.h",
+                outputFileStem);
         NodeListener listener = new NodeListener(
-                generatorContext, defaulBaseNodeClass);
+                generatorContext, classHierarchyRoot);
         parser = new NodeGenerationParser(tokenStream);
         parser.addParseListener(listener);
         // TODO: error handling
@@ -69,71 +74,89 @@ public class ConfigParser {
         return generatorContext;
     }
 
+    public static ConfigParser fromCharStream(
+            CharStream input,
+            String defaultBaseNodeClass,
+            String outputFileStem) {
+        return new ConfigParser(input, defaultBaseNodeClass, outputFileStem);
+    }
+
     /**
      * Builds a parser that takes its input from the specified {@link String}
      *
-     * @param input node configuration encoded in UTF-8
+     * @param input                node configuration encoded in UTF-8
      * @param defaultBaseNodeClass the root for the generated
      *                             node class hierarchy. The
      *                             generator bases all unqualified
      *                             nodes on this class.
-     *
+     * @param outputFileStem       stem for the generated header and c++ files,
+     *                             the filename up to '.h' or .cpp
      * @return a {@code ConfigParser} that will parse the provided
-     *         configuration.
+     * configuration.
      */
     public static ConfigParser fromString(
             String input,
-            String defaultBaseNodeClass) {
+            String defaultBaseNodeClass,
+            String outputFileStem) {
         System.out.println("Creating configuration parser from string:");
         System.out.println(input);
         return new ConfigParser(
                 CharStreams.fromString(input),
-                defaultBaseNodeClass);
+                defaultBaseNodeClass,
+                outputFileStem);
     }
 
     /**
      * Builds a parser that takes its input from the specified file
      *
-     * @param fileName name of a file containing a node configuration
-     *                 that is encoded in UTF-8
+     * @param fileName             name of a file containing a node configuration
+     *                             that is encoded in UTF-8
      * @param defaultBaseNodeClass the root for the generated
      *                             node class hierarchy. The
      *                             generator bases all unqualified
      *                             nodes on this class.
+     * @param outputFileStem       stem for the generated header and c++ files,
+     *                             the filename up to '.h' or .cpp
      * @return a {@code ConfigParser} that will parse the contents
-     *         of the specified file.
+     * of the specified file.
      * @throws IOException if the file does not exist or cannot
      *                     be opened
      */
     public static ConfigParser fromFileName(
             String fileName,
-            String defaultBaseNodeClass)
+            String defaultBaseNodeClass,
+            String outputFileStem)
             throws IOException {
         return new ConfigParser(
                 CharStreams.fromFileName(fileName),
-                defaultBaseNodeClass);
+                defaultBaseNodeClass,
+                outputFileStem);
     }
 
     /**
      * Builds a parser that takes its input from the specified file
      *
-     * @param filePath qualified path of a file containing a node
-     *                 configuration that is encoded in UTF-8
+     * @param filePath             qualified path of a file containing a node
+     *                             configuration that is encoded in UTF-8
      * @param defaultBaseNodeClass the root for the generated
      *                             node class hierarchy. The
      *                             generator bases all unqualified
      *                             nodes on this class.
+     * @param outputFileStem       stem for the generated header and c++ files,
+     *                             the filename up to '.h' or .cpp
      * @return a {@code ConfigParser} that will parse the contents
-     *         of the specified file.
+     * of the specified file.
      * @throws IOException if the file does not exist or cannot
      *                     be opened
      */
     public static ConfigParser fromPath(
             Path filePath,
-            String defaultBaseNodeClass)
+            String defaultBaseNodeClass,
+            String outputFileStem)
             throws IOException {
         return new ConfigParser(
                 CharStreams.fromPath(filePath),
-                defaultBaseNodeClass);
+                defaultBaseNodeClass,
+                outputFileStem);
     }
 }

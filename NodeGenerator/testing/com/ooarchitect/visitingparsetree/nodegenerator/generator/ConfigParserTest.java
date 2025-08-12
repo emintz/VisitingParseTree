@@ -19,6 +19,8 @@
  */
 package org.ooarchitect.visitingparsetree.nodegenerator.generator;
 
+import com.google.common.collect.ImmutableSetMultimap;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -31,7 +33,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class ConfigParserTest {
 
     private static final String DEFAULT_BASE_CLASS = "BaseAstNode";
-
+    private static final String OUTPUT_FILE_STEM = "BaseAttrNode";
     private static final String SIMPLE_CONFIG =
             """
                     namespaces = { curly, larry, moe };
@@ -43,7 +45,8 @@ public class ConfigParserTest {
     public void testSimpleConfig() {
         ConfigParser parser = ConfigParser.fromString(
                 SIMPLE_CONFIG,
-                DEFAULT_BASE_CLASS);
+                DEFAULT_BASE_CLASS,
+                OUTPUT_FILE_STEM);
         assertThat(parser).isNotNull();
         GeneratorContext context = parser.parse();
         assertThat(context).isNotNull();
@@ -53,11 +56,14 @@ public class ConfigParserTest {
                 "moe"
         );
         assertThat(context.nodeClass()).isEqualTo("TestNodes");
-        assertThat(context.nodes()).containsExactly(
+        ImmutableSetMultimap<String, NodeClassAndSuperclass> nodeDeclarations =
+                context.nodeDeclarations();
+        assertThat(nodeDeclarations).hasSize(3);
+        assertThat(nodeDeclarations.get(DEFAULT_BASE_CLASS)).containsExactly(
                 new NodeClassAndSuperclass(DEFAULT_BASE_CLASS, "Foo"),
-                new NodeClassAndSuperclass(DEFAULT_BASE_CLASS, "Bar"),
-                new NodeClassAndSuperclass("Foo", "Fubb")
-        );
+                new NodeClassAndSuperclass(DEFAULT_BASE_CLASS, "Bar"));
+        assertThat(nodeDeclarations.get("Foo")).containsExactly(
+                new NodeClassAndSuperclass("Foo", "Fubb"));
         assertThat(context.attributeClass()).isEqualTo("TestAttributes");
         assertThat(context.attributes()).containsExactly(
                 "silly",

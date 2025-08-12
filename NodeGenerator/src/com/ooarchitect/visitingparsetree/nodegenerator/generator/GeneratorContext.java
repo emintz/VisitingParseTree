@@ -22,6 +22,7 @@
  */
 package org.ooarchitect.visitingparsetree.nodegenerator.generator;
 
+import com.google.common.collect.ImmutableSetMultimap;
 import java.util.ArrayList;
 
 /**
@@ -32,20 +33,41 @@ import java.util.ArrayList;
  */
 public class GeneratorContext {
 
-    public record NodeClassAndSuperclass(String supertype, String node) {
+    public record NodeClassAndSuperclass(String supertype, String node)
+            implements Comparable<NodeClassAndSuperclass> {
+
+        @Override
+        public int compareTo(NodeClassAndSuperclass that) {
+            var result = supertype().compareTo(that.supertype());
+            if (result == 0) {
+                result = node().compareTo(that.node());
+            }
+            return result;
+        }
     }
 
+    private final String classHierarchyRoot;
+    private final String hierarchyRootHeader;
+    private final String declarationFilename;
+    private final String implementationFilename;
     private final ArrayList<String> attributes;
     private final ArrayList<String> namespaces;
-    private final ArrayList<NodeClassAndSuperclass> nodes;
+    private final ImmutableSetMultimap.Builder<String, NodeClassAndSuperclass> nodeDeclarationsBuilder;
 
     private String attributeClass;
     private String nodeClass;
 
-    GeneratorContext() {
+    GeneratorContext(
+            String classHierarchyRoot,
+            String hierarchyRootHeader,
+            String outputFileStem) {
+        this.classHierarchyRoot = classHierarchyRoot;
+        this.hierarchyRootHeader = hierarchyRootHeader;
+        declarationFilename = outputFileStem + ".h";
+        implementationFilename = outputFileStem + ".cpp";
         attributes = new ArrayList<>();
         namespaces = new ArrayList<>();
-        nodes = new ArrayList<>();
+        nodeDeclarationsBuilder = ImmutableSetMultimap.builder();
         nodeClass = "";
     }
 
@@ -58,7 +80,7 @@ public class GeneratorContext {
     }
 
     void addNode(String supertype, String subtype) {
-        nodes.add(new NodeClassAndSuperclass(supertype, subtype));
+        nodeDeclarationsBuilder.put(supertype, new NodeClassAndSuperclass(supertype, subtype));
     }
 
     public String attributeClass() {
@@ -69,6 +91,22 @@ public class GeneratorContext {
         return new ArrayList<>(attributes);
     }
 
+    public String classHierarchyRoot() {
+        return classHierarchyRoot;
+    }
+
+    public String declarationFilename() {
+        return declarationFilename;
+    }
+
+    public String implementationFilename() {
+        return implementationFilename;
+    }
+
+    public String hierarchyRootHeader() {
+        return hierarchyRootHeader;
+    }
+
     public ArrayList<String> namespaces() {
         return new ArrayList<>(namespaces);
     }
@@ -77,8 +115,8 @@ public class GeneratorContext {
         return nodeClass;
     }
 
-    public ArrayList<NodeClassAndSuperclass> nodes() {
-        return new ArrayList<>(nodes);
+    public ImmutableSetMultimap<String, NodeClassAndSuperclass> nodeDeclarations() {
+        return nodeDeclarationsBuilder.build();
     }
 
     public void setAttributeClass(String attributeClass) {
