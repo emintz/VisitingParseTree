@@ -102,6 +102,15 @@ public class GeneratorContext {
         return declarationFilename;
     }
 
+    public String fullyQualifiedPrefixFrom(String className) {
+        StringBuilder builder = new StringBuilder();
+        for (String namespaceName : namespaces) {
+            builder.append(namespaceName).append("::");
+        }
+        builder.append(className);
+        return builder.toString();
+    }
+
     public String implementationFilename() {
         return implementationFilename;
     }

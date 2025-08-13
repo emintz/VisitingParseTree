@@ -165,6 +165,7 @@ public class CppEmitter {
     void attributeImplementation() throws IOException {
         String attributeClass = context.attributeClass();
         if (!context.attributes().isEmpty()) {
+            String attributeNamePrefix = context.fullyQualifiedPrefixFrom(attributeClass);
             implementationTarget
                     .append(attributeClass)
                     .append("::")
@@ -180,6 +181,7 @@ public class CppEmitter {
                             .append("::")
                             .append(name)
                             .append("(\"")
+                            .append(attributeNamePrefix)
                             .append(name)
                             .append("\");\n");
             }
@@ -444,12 +446,14 @@ public class CppEmitter {
                 throws IOException {
         String supplierClassName = toSupplierName(nodeClassName);
         String withinSupplier = withinSupplier(nodeClassName);
+        String supplierNamePrefix = context.fullyQualifiedPrefixFrom("");
 
         implementationTarget
                 .append(withinSupplier).append(supplierClassName).append("(void) :\n")
                 .append("  VisitingParseTree::Supplier<")
                     .append(classHierarchyRoot)
                     .append(">(\"")
+                    .append(supplierNamePrefix)
                     .append(nodeClassName)
                     .append("\") {}\n")
                 .append('\n')
