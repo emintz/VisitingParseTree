@@ -49,6 +49,9 @@ public class CppEmitterTest {
             """;
 
     private static final String EXPECTED_DECLARATION_FOOTER = """
+            }
+            }
+            }
             
             #endif // TESTNODES_H_
             """;
@@ -70,10 +73,15 @@ public class CppEmitterTest {
             
             #include <BaseAttrNode.h>
             
+            #include <Attribute.h>
             #include <Supplier.h>
             #include <TraversalStatus.h>
             
-            #include <std>
+            #include <memory>
+            
+            namespace curly {
+            namespace larry {
+            namespace moe {
             
             """;
 
@@ -86,52 +94,67 @@ public class CppEmitterTest {
             
             """
             + "#include \"" + EXPECTED_HEADER_FILE + "\"\n"
-            + '\n';
+            + '\n'
+            + """
+            namespace curly {
+            namespace larry {
+            namespace moe {
+            
+            """;
 
     private static final String EXPECTED_ABSTRACT_NODE_IMPLEMENTATION = """
             Foo::Foo() :
-                VisitingParseTree::BaseAttrNode("Foo") {}
-            
-            Foo::~Foo() {}
+                VisitingParseTree::BaseAttrNode() {}
             
             VisitingParseTree::TraversalStatus Foo::accept(VisitingParseTree::Visitor *visitor) {
               auto concrete_visitor = dynamic_cast<FooVisitor *>(visitor);
               return concrete_visitor
-                  ? concrete_visitor->process_Foo(this)
+                  ? concrete_visitor->processFoo(this)
                   : VisitingParseTree::BaseAttrNode::accept(visitor);
             }
  
             """;
 
     private static final String EXPECTED_CONCRETE_NODE_IMPLEMENTATION =
-            EXPECTED_ABSTRACT_NODE_IMPLEMENTATION + """
-                    Foo::FooSupplier SUPPLIER;
+       """
+       Foo::Foo(forbid_public_access here) :
+           VisitingParseTree::BaseAttrNode() {}
+        
+       VisitingParseTree::TraversalStatus Foo::accept(VisitingParseTree::Visitor *visitor) {
+         auto concrete_visitor = dynamic_cast<FooVisitor *>(visitor);
+         return concrete_visitor
+             ? concrete_visitor->processFoo(this)
+             : VisitingParseTree::BaseAttrNode::accept(visitor);
+       }
+
+       Foo::FooSupplier Foo::SUPPLIER;
                     
-                    VisitingParseTree::BaseAttrNodeSupplier& Foo::supplier(void) {
-                      return SUPPLIER;
-                    }
-                    
-                    """;
+       VisitingParseTree::BaseAttrNodeSupplier& Foo::supplier(void) {
+         return SUPPLIER;
+       }
+        
+        """;
 
     private static final String EXPECTED_SUPPLIER_DECLARATION = """
               class FooSupplier : public VisitingParseTree::Supplier<VisitingParseTree::BaseAttrNode> {
                 friend class Foo;
                 FooSupplier(void);
               public:
-                virtual ~FooSupplier();
+                virtual ~FooSupplier() = default;
                 virtual std::shared_ptr<VisitingParseTree::BaseAttrNode> make_shared(void) override;
-              }
+              };
             """;
 
     private static final String EXPECTED_ABSTRACT_NODE_DECLARATION = """
             class Foo : public VisitingParseTree::BaseAttrNode {
+            protected:
               Foo(void);
             
             public:
             
               virtual VisitingParseTree::TraversalStatus accept(VisitingParseTree::Visitor *visitor) override;
               
-              virtual ~Foo();
+              virtual ~Foo() = default;
             };
             
             """;
@@ -139,8 +162,8 @@ public class CppEmitterTest {
     private static final String EXPECTED_CONCRETE_NODE_DECLARATION = """
             class Foo : public VisitingParseTree::BaseAttrNode {
               friend class FooSupplier;
-              Foo(void);
             public:
+              Foo(forbid_public_access here);
             
             """
             + EXPECTED_SUPPLIER_DECLARATION
@@ -151,35 +174,34 @@ public class CppEmitterTest {
               virtual VisitingParseTree::BaseAttrNodeSupplier& supplier(void) override;
             
               virtual VisitingParseTree::TraversalStatus accept(VisitingParseTree::Visitor *visitor) override;
-              
-              virtual ~Foo();
+            
+              virtual ~Foo() = default;
             };
             
             """;
 
     private static final String EXPECTED_SUPPLIER_IMPLEMENTATION = """
             Foo::FooSupplier::FooSupplier(void) :
-              VisitingParseTree::Supplier<VisitingParseTree::BaseAttrNode>("Foo") {}
-            
-            Foo::FooSupplier::~FooSupplier() {}
+              VisitingParseTree::Supplier<VisitingParseTree::BaseAttrNode>("curly::larry::moe::Foo") {}
             
             std::shared_ptr<VisitingParseTree::BaseAttrNode> Foo::FooSupplier::make_shared(void) {
-              Foo *node = new Foo();
-              return std::make_shared<VisitingParseTree::BaseAttrNode>(node);
+              return std::static_pointer_cast<VisitingParseTree::BaseAttrNode>(
+                std::make_shared<Foo>(forbid_public_access::here));
             }
             """;
+
+    // was:
+    // std::shared_ptr<VisitingParseTree::BaseAttrNode> Foo::FooSupplier::make_shared(void) {
+    //              Foo *node = new Foo(forbid_public_access::here);
+    //              return std::shared_ptr<VisitingParseTree::BaseAttrNode>(node);
+    //            }
 
     private static final String EXPECTED_VISITOR_DECLARATION = """
             class FooVisitor {
             public:
-              virtual ~FooVisitor();
-              VisitingParseTree::TraversalStatus processFoo(Foo *host) = 0;
+              virtual ~FooVisitor() = default;
+              virtual VisitingParseTree::TraversalStatus processFoo(Foo *host) = 0;
             };
-            """;
-
-    private static final String EXPECTED_VISITOR_IMPLEMENTATION = """
-            FooVisitor::~FooVisitor() {}
-            
             """;
 
     private CppEmitter emitter;
@@ -261,14 +283,6 @@ public class CppEmitterTest {
         emitter.visitorDeclaration("Foo");
         assertThat(declarationTarget.toString()).isEqualTo(EXPECTED_VISITOR_DECLARATION);
         assertThat(implementationTarget.toString()).isEmpty();
-    }
-
-    @Test
-    public void testVisitorImplementation() throws IOException {
-        emitter.visitorImplementation("Foo");
-        assertThat(declarationTarget.toString()).isEmpty();
-        assertThat(implementationTarget.toString())
-                .isEqualTo(EXPECTED_VISITOR_IMPLEMENTATION);
     }
 
     @Test

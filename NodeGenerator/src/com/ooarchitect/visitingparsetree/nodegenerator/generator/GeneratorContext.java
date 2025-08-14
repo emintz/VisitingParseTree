@@ -107,16 +107,19 @@ public class GeneratorContext {
         for (String namespaceName : namespaces) {
             builder.append(namespaceName).append("::");
         }
-        builder.append(className).append("::");
         return builder.toString();
     }
 
-    public String implementationFilename() {
-        return implementationFilename;
+    public boolean hasInputFile() {
+        return !inputFileName.isEmpty();
     }
 
     public String hierarchyRootHeader() {
         return hierarchyRootHeader;
+    }
+
+    public String implementationFilename() {
+        return implementationFilename;
     }
 
     public String inputFileName() {

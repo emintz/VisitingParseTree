@@ -119,17 +119,21 @@ public class CppEmitter {
      * @throws IOException if appending failed
      */
     private Appendable fileHeader(Appendable target) throws IOException {
-        return target.append("/**\n")
+        target.append("/**\n")
                 .append(" * Generated code, please DO NOT modify\n")
                 .append(" *\n")
                 .append(" * Generated on ")
                     .append(currentTime.get())
                     .append(" by ")
                     .append(userName.get())
-                    .append(".\n")
-                .append(" * Source: ").append(context.inputFileName()).append('\n')
-                .append(" */\n")
+                    .append(".\n");
+                if (context.hasInputFile()) {
+                    target.append(" * Source: ").append(context.inputFileName()).append('\n');
+                }
+                target.append(" */\n")
                 .append('\n');
+
+        return target;
     }
 
     /**
@@ -168,7 +172,9 @@ public class CppEmitter {
     void attributeImplementation() throws IOException {
         String attributeClass = context.attributeClass();
         if (!context.attributes().isEmpty()) {
-            String attributeNamePrefix = context.fullyQualifiedPrefixFrom(attributeClass);
+            String attributeNamePrefix = new StringBuilder(context.fullyQualifiedPrefixFrom(attributeClass))
+                    .append("::")
+                    .toString();
             implementationTarget
                     .append(attributeClass)
                     .append("::")
@@ -305,7 +311,7 @@ public class CppEmitter {
             String nodeClassName,
             String superclassName)
             throws IOException {
-        nodeImplementation(nodeClassName, superclassName);
+        nodeImplementation(nodeClassName, superclassName, "");
     }
 
     /**
@@ -342,8 +348,8 @@ public class CppEmitter {
         String supplierName = toSupplierName(nodeClassName);
         nodeClassPreamble(nodeClassName, superclassName)
                 .append("  friend class ").append(supplierName).append(";\n")
-                .append("  ").append(nodeClassName).append("(void);\n")
                 .append("public:\n")
+                .append("  ").append(nodeClassName).append("(forbid_public_access here);\n")
                 .append('\n');
         supplierDeclaration(nodeClassName)
                 .append('\n')
@@ -365,7 +371,10 @@ public class CppEmitter {
             String nodeClassName,
             String superclassName) throws IOException{
         String withinClass = nodeClassName + "::";
-        nodeImplementation(nodeClassName, superclassName)
+        nodeImplementation(
+                nodeClassName,
+                superclassName,
+                "forbid_public_access here")
                 .append(withinClass)
                     .append(toSupplierName(nodeClassName))
                     .append(' ')
@@ -381,18 +390,25 @@ public class CppEmitter {
     /**
      * Generates the methods and field implementation used in abstract and
      * concrete nodes.
-     * @param nodeClassName generated node's class name
-     * @param superclassName generated node's immediate superclass
+     *
+     * @param nodeClassName        generated node's class name
+     * @param superclassName       generated node's immediate superclass
+     * @param constructorArguments
      * @return the {@link Appendable} to receive additional emitted
-     *         text for chaining
+     * text for chaining
      * @throws IOException when appending generated text fails
      */
     private Appendable nodeImplementation(
             String nodeClassName,
-            String superclassName) throws IOException {
+            String superclassName,
+            String constructorArguments) throws IOException {
         String withinClass = nodeClassName + "::";
         return implementationTarget
-                .append(withinClass).append(nodeClassName).append("() :\n")
+                .append(withinClass)
+                    .append(nodeClassName)
+                    .append("(")
+                    .append(constructorArguments)
+                    .append(") :\n")
                 .append("    ")
                     .append(superclassName)
                     .append("() {}\n")
@@ -463,14 +479,12 @@ public class CppEmitter {
                     .append("> ")
                     .append(withinSupplier)
                     .append("make_shared(void) {\n")
-                .append("  ")
-                    .append(nodeClassName)
-                    .append(" *node = new ")
-                    .append(nodeClassName)
-                    .append("();\n")
-                .append("  return std::shared_ptr<")
+                .append("  return std::static_pointer_cast<")
                     .append(classHierarchyRoot)
-                    .append(">(node);\n")
+                    .append(">(\n")
+                .append("    std::make_shared<")
+                    .append(nodeClassName)
+                    .append(">(forbid_public_access::here));\n")
                 .append("}\n");
     }
 
@@ -567,9 +581,11 @@ public class CppEmitter {
                     supplierImplementation(currentNode);
                 }
                 visitorDeclaration(currentNode);
-                // Note: visitor classes use default constructors and
-                //       destructors. Since their only other method is
-                //       pure virtual, they have no implementation.
+                /*
+                 * Note: visitor classes use default constructors and
+                 *       destructors. Since their only other method is
+                 *       pure virtual, they have no implementation.
+                 */
                 emitted.add(currentNode);
             }
         }
