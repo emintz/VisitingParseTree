@@ -55,6 +55,19 @@ template <typename T> class Node :
   std::weak_ptr<T> parent_;
   std::vector<std::shared_ptr<T>> children_;
 
+  /*
+   * Disconnects this node from its parent. Note that
+   * this node **must** have a parent for this method to
+   * work properly.
+   *
+   * Parameters:
+   * ----------
+   *
+   * Name                     Contents
+   * -----------------        --------------------------------------------
+   * position                 An iterator that points to this node in
+   *                          the parent's child list. Cannot be NULL.
+   */
   void disconnect_from_parent(
       typename std::vector<std::shared_ptr<T>>::const_iterator position) {
     parent_->children_.erase(position);
@@ -68,10 +81,33 @@ protected:
     children_() {
   }
 
+  /*
+   * Add to a method's parameter list to prevent public access
+   * This is typically done to hide constructors from application
+   * code without hiding them from std::make_shared;
+   */
+  enum class forbid_public_access { here } ;
+
 public:
+
   virtual ~Node() {
   }
 
+  /*
+   * Gets a new node from the specified supplier and appends
+   * it to this node's child list.
+   *
+   * Parameters:
+   * ----------
+   *
+   * Name                     Contents
+   * -----------------        --------------------------------------------
+   * supplier                 The Supplier (i.e. factory) to provide the
+   *                          new child node.
+   *
+   * TODO(emintz): refactor the logic that adds the newly created node
+   *               into a separate public method.
+   */
   std::shared_ptr<T> append_child(Supplier<T>& supplier) {
     auto new_child = supplier.make_shared();
     children_.push_back(new_child);
@@ -79,6 +115,22 @@ public:
     return new_child;
   }
 
+  /*
+   * Gets a new node from the specified supplier and appends
+   * it to the child list of this node's parent. Note that
+   * this node MUST NOT be a root node.
+   *
+   * Parameters:
+   * ----------
+   *
+   * Name                     Contents
+   * -----------------        --------------------------------------------
+   * supplier                 The Supplier (i.e. factory) to provide the
+   *                          new child node.
+   *
+   * TODO(emintz): refactor the logic that adds the newly created node
+   *               into a separate public method.
+   */
   std::shared_ptr<T> append_sibling(Supplier<T>& supplier) {
     if (!parent_.use_count()) {
       throw IllegalOnRoot("Cannot append a sibling to a root node.");
@@ -98,10 +150,13 @@ public:
    * -----------------        --------------------------------------------
    * index                    Child index, which SHOULD be in
    *                          [0 .. child_count)
+   *
+   * Returns: a shared_ptr to the child if index is valid, an
+   *          a vacuous (i.e. empty) shared_ptr otherwise.
    */
 
   std::shared_ptr<T> child(size_t index) {
-    return index < child_count()
+    return 0 <= index && index < child_count()
         ? children_[index]
         : std::shared_ptr<T>();
   }
