@@ -107,7 +107,7 @@ public class GeneratorContext {
         for (String namespaceName : namespaces) {
             builder.append(namespaceName).append("::");
         }
-        builder.append(className);
+        builder.append(className).append("::");
         return builder.toString();
     }
 

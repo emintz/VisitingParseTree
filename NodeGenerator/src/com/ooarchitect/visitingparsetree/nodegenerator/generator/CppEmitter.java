@@ -101,10 +101,13 @@ public class CppEmitter {
     }
 
     private void openNamespaces(Appendable target) throws IOException {
-        for (String namespace : context.namespaces()) {
-            target.append("namespace ")
-                    .append(namespace)
-                    .append(" {\n");
+        if (!context.namespaces().isEmpty()) {
+            for (String namespace : context.namespaces()) {
+                target.append("namespace ")
+                        .append(namespace)
+                        .append(" {\n");
+            }
+            target.append('\n');
         }
     }
 
@@ -285,7 +288,7 @@ public class CppEmitter {
         declarationTarget
                 .append("  virtual " + TRAVERSAL_STATUS + " accept(" + BASE_VISITOR_CLASS + " *visitor) override;\n")
                 .append('\n')
-                .append("  virtual ~").append(nodeClassName).append("();\n")
+                .append("  virtual ~").append(nodeClassName).append("() = default;\n")
                 .append("};\n")
                 .append('\n');
     }
@@ -394,8 +397,6 @@ public class CppEmitter {
                     .append(superclassName)
                     .append("() {}\n")
                 .append('\n')
-                .append(withinClass).append('~').append(nodeClassName).append("() {}\n")
-                .append('\n')
                 .append(TRAVERSAL_STATUS + ' ').append(withinClass).append("accept(" + BASE_VISITOR_CLASS + " *visitor) {\n")
                 .append("  auto concrete_visitor = dynamic_cast<").append(toVisitorClassName(nodeClassName)).append(" *>(visitor);\n")
                 .append("  return concrete_visitor\n")
@@ -428,7 +429,7 @@ public class CppEmitter {
                     .append(";\n")
                 .append("    ").append(supplierClassName).append("(void);\n")
                 .append("  public:\n")
-                .append("    virtual ~").append(supplierClassName).append("();\n")
+                .append("    virtual ~").append(supplierClassName).append("() = default;\n")
                 .append("    virtual std::shared_ptr<")
                     .append(classHierarchyRoot)
                     .append("> make_shared(void) override;\n")
@@ -457,9 +458,7 @@ public class CppEmitter {
                     .append(nodeClassName)
                     .append("\") {}\n")
                 .append('\n')
-                .append(withinSupplier).append('~').append(supplierClassName).append("() {}\n")
-                .append('\n')
-                .append("std::shared_ptr<")
+              .append("std::shared_ptr<")
                     .append(classHierarchyRoot)
                     .append("> ")
                     .append(withinSupplier)
@@ -487,7 +486,7 @@ public class CppEmitter {
         declarationTarget
                 .append("class ").append(visitorClassName).append(" {\n")
                 .append("public:\n")
-                .append("  virtual ~").append(visitorClassName).append("();\n")
+                .append("  virtual ~").append(visitorClassName).append("() = default;\n")
                 .append("  virtual " + TRAVERSAL_STATUS + " process")
                     .append(nodeClassName)
                     .append('(')
@@ -496,19 +495,6 @@ public class CppEmitter {
                 .append("};\n");
     }
 
-    /**
-     * Generates the implementation of the visitor class associated with the
-     * specified node
-     * @param nodeClassName generated node's class name
-     * @throws IOException when appending generated text fails
-     */
-    void visitorImplementation(String nodeClassName)
-        throws IOException {
-        String visitorClassName = toVisitorClassName(nodeClassName);
-        implementationTarget
-                .append(visitorClassName).append("::~").append(visitorClassName).append("() {}\n")
-                .append('\n');
-    }
 
     /**
      * Constructor for use by applications. The resulting
@@ -581,7 +567,9 @@ public class CppEmitter {
                     supplierImplementation(currentNode);
                 }
                 visitorDeclaration(currentNode);
-                visitorImplementation(currentNode);
+                // Note: visitor classes use default constructors and
+                //       destructors. Since their only other method is
+                //       pure virtual, they have no implementation.
                 emitted.add(currentNode);
             }
         }
