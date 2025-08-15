@@ -116,7 +116,7 @@ public class CppEmitterTest {
        """
        Foo::Foo(forbid_public_access) :
            VisitingParseTree::BaseAttrNode() {}
-        
+       
        VisitingParseTree::TraversalStatus Foo::accept(VisitingParseTree::Visitor *visitor) {
          auto concrete_visitor = dynamic_cast<FooVisitor *>(visitor);
          return concrete_visitor
@@ -125,12 +125,12 @@ public class CppEmitterTest {
        }
 
        Foo::FooSupplier Foo::SUPPLIER;
-                    
+       
        VisitingParseTree::BaseAttrNodeSupplier& Foo::supplier(void) {
          return SUPPLIER;
        }
-        
-        """;
+       
+       """;
 
     private static final String EXPECTED_SUPPLIER_DECLARATION = """
               class FooSupplier : public VisitingParseTree::Supplier<VisitingParseTree::BaseAttrNode> {

@@ -301,15 +301,12 @@ public class CppEmitter {
     /**
      * Closes a node class declaration by emitting the end of class
      * boilerplate.
-     * @param nodeClassName class being close
+     *
      * @throws IOException when appending generated text fails
      */
-    private void nodeDeclarationClose(
-            String nodeClassName) throws IOException {
+    private void nodeDeclarationClose() throws IOException {
         declarationTarget
                 .append("  virtual " + TRAVERSAL_STATUS + " accept(" + BASE_VISITOR_CLASS + " *visitor) override;\n")
-//                .append('\n')
-//                .append("  virtual ~").append(nodeClassName).append("() = default;\n")
                 .append("};\n")
                 .append('\n');
     }
@@ -346,7 +343,7 @@ public class CppEmitter {
                 .append('\n')
                 .append("public:\n")
                 .append('\n');
-        nodeDeclarationClose(nodeClassName);
+        nodeDeclarationClose();
     }
 
     /**
@@ -372,7 +369,7 @@ public class CppEmitter {
                 .append('\n')
                 .append("  virtual ").append(baseSupplierClass).append("& supplier(void) override;\n")
                 .append('\n');
-        nodeDeclarationClose(nodeClassName);
+        nodeDeclarationClose();
     }
 
     /**
