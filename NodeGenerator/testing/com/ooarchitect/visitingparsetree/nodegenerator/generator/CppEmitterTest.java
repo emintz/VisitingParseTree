@@ -114,8 +114,7 @@ public class CppEmitterTest {
 
     private static final String EXPECTED_CONCRETE_NODE_IMPLEMENTATION =
        """
-       Foo::Foo(forbid_public_access) :
-           VisitingParseTree::BaseAttrNode() {}
+       Foo::Foo(forbid_public_access) {}
        
        VisitingParseTree::TraversalStatus Foo::accept(VisitingParseTree::Visitor *visitor) {
          auto concrete_visitor = dynamic_cast<FooVisitor *>(visitor);

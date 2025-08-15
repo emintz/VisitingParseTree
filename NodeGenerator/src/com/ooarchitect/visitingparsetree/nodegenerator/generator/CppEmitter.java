@@ -386,10 +386,7 @@ public class CppEmitter {
         implementationTarget
                 .append(withinClass)
                 .append(nodeClassName)
-                .append("(forbid_public_access) :\n")
-                .append("    ")
-                .append(superclassName)
-                .append("() {}\n")
+                .append("(forbid_public_access) {}\n")
                 .append('\n');
         acceptMethodImplementation(
                 nodeClassName,
