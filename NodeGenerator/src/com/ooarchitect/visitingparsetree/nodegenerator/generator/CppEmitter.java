@@ -136,6 +136,21 @@ public class CppEmitter {
         return target;
     }
 
+    Appendable acceptMethodImplementation(
+            String nodeClassName,
+            String superclassName) throws IOException {
+        String withinClass = nodeClassName + "::";
+        return implementationTarget
+                .append(TRAVERSAL_STATUS + ' ').append(withinClass).append("accept(" + BASE_VISITOR_CLASS + " *visitor) {\n")
+                .append("  auto concrete_visitor = dynamic_cast<").append(toVisitorClassName(nodeClassName)).append(" *>(visitor);\n")
+                .append("  return concrete_visitor\n")
+                .append("      ? concrete_visitor->").append(toProcessMethod(nodeClassName)).append("(this)\n")
+                .append("      : ").append(superclassName).append("::accept(visitor);\n")
+                .append("}\n")
+                .append('\n')
+        ;
+    }
+
     /**
      * Declare attributes if the configuration specifies any. Does
      * nothing if the user does not request attributes.
@@ -210,6 +225,8 @@ public class CppEmitter {
                 .append("#ifndef ").append(guard).append('\n')
                 .append("#define ").append(guard).append('\n')
                 .append('\n')
+                .append("#include <memory>\n")
+                .append('\n')
                 .append("#include <")
                     .append(context.hierarchyRootHeader())
                     .append(">\n")
@@ -217,8 +234,6 @@ public class CppEmitter {
                 .append("#include <Attribute.h>\n")
                 .append("#include <Supplier.h>\n")
                 .append("#include <TraversalStatus.h>\n")
-                .append('\n')
-                .append("#include <memory>\n")
                 .append('\n');
         openNamespaces(declarationTarget);
     }
@@ -293,8 +308,8 @@ public class CppEmitter {
             String nodeClassName) throws IOException {
         declarationTarget
                 .append("  virtual " + TRAVERSAL_STATUS + " accept(" + BASE_VISITOR_CLASS + " *visitor) override;\n")
-                .append('\n')
-                .append("  virtual ~").append(nodeClassName).append("() = default;\n")
+//                .append('\n')
+//                .append("  virtual ~").append(nodeClassName).append("() = default;\n")
                 .append("};\n")
                 .append('\n');
     }
@@ -311,7 +326,7 @@ public class CppEmitter {
             String nodeClassName,
             String superclassName)
             throws IOException {
-        nodeImplementation(nodeClassName, superclassName, "");
+        acceptMethodImplementation(nodeClassName, superclassName);
     }
 
     /**
@@ -327,7 +342,7 @@ public class CppEmitter {
             throws IOException {
         nodeClassPreamble(nodeClassName, superclassName)
                 .append("protected:\n")
-                .append("  ").append(nodeClassName).append("(void);\n")
+                .append("  ").append(nodeClassName).append("(void) = default;\n")
                 .append('\n')
                 .append("public:\n")
                 .append('\n');
@@ -349,7 +364,7 @@ public class CppEmitter {
         nodeClassPreamble(nodeClassName, superclassName)
                 .append("  friend class ").append(supplierName).append(";\n")
                 .append("public:\n")
-                .append("  ").append(nodeClassName).append("(forbid_public_access here);\n")
+                .append("  ").append(nodeClassName).append("(forbid_public_access);\n")
                 .append('\n');
         supplierDeclaration(nodeClassName)
                 .append('\n')
@@ -371,10 +386,17 @@ public class CppEmitter {
             String nodeClassName,
             String superclassName) throws IOException{
         String withinClass = nodeClassName + "::";
-        nodeImplementation(
+        implementationTarget
+                .append(withinClass)
+                .append(nodeClassName)
+                .append("(forbid_public_access) :\n")
+                .append("    ")
+                .append(superclassName)
+                .append("() {}\n")
+                .append('\n');
+        acceptMethodImplementation(
                 nodeClassName,
-                superclassName,
-                "forbid_public_access here")
+                superclassName)
                 .append(withinClass)
                     .append(toSupplierName(nodeClassName))
                     .append(' ')
@@ -385,42 +407,6 @@ public class CppEmitter {
                 .append("  return SUPPLIER;\n")
                 .append("}\n")
                 .append('\n');
-    }
-
-    /**
-     * Generates the methods and field implementation used in abstract and
-     * concrete nodes.
-     *
-     * @param nodeClassName        generated node's class name
-     * @param superclassName       generated node's immediate superclass
-     * @param constructorArguments
-     * @return the {@link Appendable} to receive additional emitted
-     * text for chaining
-     * @throws IOException when appending generated text fails
-     */
-    private Appendable nodeImplementation(
-            String nodeClassName,
-            String superclassName,
-            String constructorArguments) throws IOException {
-        String withinClass = nodeClassName + "::";
-        return implementationTarget
-                .append(withinClass)
-                    .append(nodeClassName)
-                    .append("(")
-                    .append(constructorArguments)
-                    .append(") :\n")
-                .append("    ")
-                    .append(superclassName)
-                    .append("() {}\n")
-                .append('\n')
-                .append(TRAVERSAL_STATUS + ' ').append(withinClass).append("accept(" + BASE_VISITOR_CLASS + " *visitor) {\n")
-                .append("  auto concrete_visitor = dynamic_cast<").append(toVisitorClassName(nodeClassName)).append(" *>(visitor);\n")
-                .append("  return concrete_visitor\n")
-                .append("      ? concrete_visitor->").append(toProcessMethod(nodeClassName)).append("(this)\n")
-                .append("      : ").append(superclassName).append("::accept(visitor);\n")
-                .append("}\n")
-                .append('\n')
-        ;
     }
 
     /**
@@ -445,7 +431,6 @@ public class CppEmitter {
                     .append(";\n")
                 .append("    ").append(supplierClassName).append("(void);\n")
                 .append("  public:\n")
-                .append("    virtual ~").append(supplierClassName).append("() = default;\n")
                 .append("    virtual std::shared_ptr<")
                     .append(classHierarchyRoot)
                     .append("> make_shared(void) override;\n")
@@ -500,7 +485,7 @@ public class CppEmitter {
         declarationTarget
                 .append("class ").append(visitorClassName).append(" {\n")
                 .append("public:\n")
-                .append("  virtual ~").append(visitorClassName).append("() = default;\n")
+//                .append("  virtual ~").append(visitorClassName).append("() = default;\n")
                 .append("  virtual " + TRAVERSAL_STATUS + " process")
                     .append(nodeClassName)
                     .append('(')
