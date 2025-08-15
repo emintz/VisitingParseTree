@@ -94,6 +94,25 @@ public:
   }
 
   /*
+   * Appends the specified node to this node's child list.
+   *
+   * Parameters:
+   * ----------
+   *
+   * Name                     Contents
+   * -----------------        --------------------------------------------
+   * new_child                The node to append
+   *
+   * Return: the newly appended child. Note that its parent will be
+   * this.
+   */
+  std::shared_ptr<T> append_child(std::shared_ptr<T> new_child) {
+    children_.push_back(new_child);
+    new_child->parent_ = std::enable_shared_from_this<T>::weak_from_this();
+    return new_child;
+  }
+
+  /*
    * Gets a new node from the specified supplier and appends
    * it to this node's child list.
    *
@@ -105,14 +124,32 @@ public:
    * supplier                 The Supplier (i.e. factory) to provide the
    *                          new child node.
    *
-   * TODO(emintz): refactor the logic that adds the newly created node
-   *               into a separate public method.
+   * Return: the newly appended child. Note that its parent will be
+   * this.
    */
   std::shared_ptr<T> append_child(Supplier<T>& supplier) {
-    auto new_child = supplier.make_shared();
-    children_.push_back(new_child);
-    new_child->parent_ = std::enable_shared_from_this<T>::weak_from_this();
-    return new_child;
+    return append_child(supplier.make_shared());
+  }
+
+  /*
+   * Appends the specified node as a child of this node's parent.
+   * Note that this node MUST NOT be a root node.
+   *
+   * Parameters:
+   * ----------
+   *
+   * Name                     Contents
+   * -----------------        --------------------------------------------
+   * supplier                 The Supplier (i.e. factory) to provide the
+   *                          new child node.
+   *
+   * Return: the newly appended child.
+   */
+  std::shared_ptr<T> append_sibling(std::shared_ptr<T> new_sibling) {
+    if (!parent_.use_count()) {
+      throw IllegalOnRoot("Cannot append a sibling to a root node.");
+    }
+    parent->append_child(new_sibling);
   }
 
   /*
@@ -128,8 +165,7 @@ public:
    * supplier                 The Supplier (i.e. factory) to provide the
    *                          new child node.
    *
-   * TODO(emintz): refactor the logic that adds the newly created node
-   *               into a separate public method.
+   * Return: the newly appended child.
    */
   std::shared_ptr<T> append_sibling(Supplier<T>& supplier) {
     if (!parent_.use_count()) {
