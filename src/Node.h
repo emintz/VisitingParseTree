@@ -271,6 +271,21 @@ public:
     return destination;
   }
 
+
+  /* Creates an empty copy of this node
+   *
+   * Allocates and returns a new instance of this node's type.
+   * The new node's comes straight from its supplier. Fields
+   * will have their default values the node will have neither
+   * parent or children.
+   *
+   * Returns: the newly allocated node as described above.
+   */
+
+  std::shared_ptr<T> empty_copy() {
+    return supplier().make_shared();
+  }
+
   /* Excises this node
    *
    * Detaches this node from its parent, moving its

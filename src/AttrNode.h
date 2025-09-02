@@ -64,6 +64,29 @@ public:
     return attributes_.size();
   }
 
+  /* Clones this node
+   *
+   * Allocates a node of the same type as this and copies this
+   * node's attributes to it.
+   *
+   * Returns: the newly allocated node, as described above.
+   */
+  std::shared_ptr<T> clone() {
+    auto copy = AttrNode<T>::empty_copy();
+    return copy_attributes_to(copy);
+  }
+
+  /* Copies this nodes attributes to another node.
+   *
+   * Copies every attribute of this node to another node. This
+   * node is not altered. The method overwrites attributes in
+   * the destination, meaning that the destination's conflicting
+   * attributes will be overwritten and non-conflicting
+   * attributes will remain unchanged.
+   *
+   * Returns: a shared pointer to the destination node, for
+   *          chaining.
+   */
   std::shared_ptr<T> copy_attributes_to(std::shared_ptr<T> that) {
     class : public AttributeFunction {
       std::shared_ptr<T> destination_;
@@ -81,7 +104,7 @@ public:
     return that;
   }
 
-  /** Erases the specified attribute
+  /* Erases the specified attribute
    *
    * Erases the specified attribute if it exists; does nothing if the
    * specified attribute does not exist.
