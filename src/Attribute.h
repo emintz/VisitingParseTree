@@ -21,11 +21,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef ATTRIBUTE_H_
-#define ATTRIBUTE_H_
+
+#pragma once
 
 #include <cstdint>
 #include <string>
+
+#include "BaseAttribute.h"
 
 namespace VisitingParseTree {
 
@@ -33,30 +35,28 @@ namespace VisitingParseTree {
  * Base class for attribute types, which are also used
  * as keys in an std::unordered:map. Note that subclass
  * MUST be static const and allocated during declaration.
+ *
+ * TODO: move hashing to base class (low priority)
  */
-class Attribute {
+class Attribute : public BaseAttribute {
   Attribute(const Attribute&) = delete;
   Attribute& operator=(const Attribute&) = delete;
 
-  const uint64_t hash_;
+  const size_t hash_;
   const std::string name_;
 
 protected:
   Attribute(const char *name);
 
 public:
-  virtual ~Attribute();
+  virtual ~Attribute() = default;
 
-  virtual bool operator==(const Attribute& that) const final;
-
-  virtual bool operator!=(const Attribute& that) const final;
-
-  inline size_t hash(void) const {
-    return static_cast<size_t>(hash_);
+  size_t hash(void) const {
+    return hash_;
   }
 
-  inline const char *name(void) const {
-    return name_.c_str();
+  const std::string& name(void) const {
+    return name_;
   }
 };
 
@@ -73,4 +73,3 @@ public:
 };
 
 }
-#endif /* ATTRIBUTE_H_ */

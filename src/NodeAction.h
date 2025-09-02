@@ -39,12 +39,10 @@ namespace VisitingParseTree {
  */
 template <typename T> class NodeAction {
 protected:
-  NodeAction(void) {
-  }
+  NodeAction(void) = default;
 
 public:
-  virtual ~NodeAction() {
-  }
+  virtual ~NodeAction() = default;
 
   virtual TraversalStatus operator()(std::shared_ptr<T> node) = 0;
 };

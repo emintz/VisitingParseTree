@@ -44,12 +44,10 @@ template<typename T> class HostVisitor;
  */
 template <typename T> class Host : public Node<T> {
 protected:
-  Host(void) {
-  }
+  Host() = default;
 
 public:
-  virtual ~Host() {
-  }
+  virtual ~Host() = default;
 
   virtual TraversalStatus accept(Visitor *visitor) = 0;
 };

@@ -24,16 +24,19 @@
 #ifndef NODE_H_
 #define NODE_H_
 
-#include "IllegalOnRoot.h"
-#include "NodeAction.h"
-#include "TraversalStatus.h"
-#include "TreeCorruptError.h"
-
+#include <algorithm>
 #include <concepts>
 #include <iterator>
 #include <memory>
 #include <utility>
 #include <vector>
+
+#include "BaseNode.h"
+#include "IllegalOperation.h"
+#include "IllegalOnRoot.h"
+#include "NodeAction.h"
+#include "TraversalStatus.h"
+#include "TreeCorruptError.h"
 
 namespace VisitingParseTree {
 
@@ -45,8 +48,9 @@ template <typename T> class Supplier;
  * are FORBIDDEN.
  */
 template <typename T> class Node :
+    public BaseNode,
     public std::enable_shared_from_this<T> {
-//  static_assert(std::is_base_of_v<Node, T> == true);
+//  static_assert(std::is_base_of_v<BaseNode, T>);
   Node(Node&) = delete;
   Node(const Node&) = delete;
   Node& operator=(Node&) = delete;
@@ -55,7 +59,15 @@ template <typename T> class Node :
   std::weak_ptr<T> parent_;
   std::vector<std::shared_ptr<T>> children_;
 
-  /*
+  /** Expands this nodes child vector to hold additional children
+   *
+   */
+  void accommodate_additional_children(size_t number_of_additional_children) {
+    children_.reserve(children_.size() + number_of_additional_children);
+  }
+
+  /* Disconnect this node from its parent.
+   *
    * Disconnects this node from its parent. Note that
    * this node **must** have a parent for this method to
    * work properly.
@@ -69,32 +81,53 @@ template <typename T> class Node :
    *                          the parent's child list. Cannot be NULL.
    */
   void disconnect_from_parent(
-      typename std::vector<std::shared_ptr<T>>::const_iterator position) {
-    parent_->children_.erase(position);
+      std::vector<std::shared_ptr<T>>::const_iterator position) {
+    auto p = parent();
+    p->children_.erase(position);
     parent_.reset();
   }
 
 
 protected:
-  Node() :
-    parent_(),
-    children_() {
-  }
+  Node() = default;
 
-  /*
-   * Add to a method's parameter list to prevent public access
+  /* Add to a method's parameter list to prevent public access
+   *
    * This is typically done to hide constructors from application
    * code without hiding them from std::make_shared;
    */
   enum class forbid_public_access { here } ;
 
-public:
-
-  virtual ~Node() {
+  // Inserts a sequence of nodes immediately before a specified
+  // location in this node's child vector
+  //
+  // Parameters:
+  // ----------
+  //
+  // Name                     Contents
+  // -----------------        --------------------------------------------
+  // insert_start             The start point for the insert. Children
+  //                          are inserted **before** the specified
+  //                          location.
+  // to_insert                Nodes to be inserted. Nodes in the list
+  //                          **MUST** be roots (this is not checked),
+  //                          and will become this node's children.
+  //
+  // Return: an iterator pointing to the first inserted element.
+  std::vector<std::shared_ptr<T>>::iterator insert_before(
+      std::vector<std::shared_ptr<T>>::iterator insert_start,
+      const std::vector<std::shared_ptr<T>>& to_insert) {
+    const auto w = std::enable_shared_from_this<T>::weak_from_this();
+    std::for_each(to_insert.begin(), to_insert.end(), [w](std::shared_ptr<T> t) { t->parent_ = w; });
+    auto p = children_.insert(insert_start, to_insert.begin(), to_insert.end());
+    return p;
   }
 
-  /*
-   * Appends the specified node to this node's child list.
+public:
+
+  virtual ~Node() = default;
+
+  /* Appends the specified node to this node's child list.
    *
    * Parameters:
    * ----------
@@ -112,7 +145,8 @@ public:
     return new_child;
   }
 
-  /*
+  /* Adds a newly allocated node as a child
+   *
    * Gets a new node from the specified supplier and appends
    * it to this node's child list.
    *
@@ -131,8 +165,8 @@ public:
     return append_child(supplier.make_shared());
   }
 
-  /*
-   * Appends the specified node as a child of this node's parent.
+  /* Appends the specified node as a child of this node's parent.
+   *
    * Note that this node MUST NOT be a root node.
    *
    * Parameters:
@@ -146,13 +180,15 @@ public:
    * Return: the newly appended child.
    */
   std::shared_ptr<T> append_sibling(std::shared_ptr<T> new_sibling) {
-    if (!parent_.use_count()) {
+    if (auto p = parent()) {
+      return p->append_child(new_sibling);
+    } else {
       throw IllegalOnRoot("Cannot append a sibling to a root node.");
     }
-    parent->append_child(new_sibling);
   }
 
-  /*
+  /* Appends a newly created child as this node's youngest sibling
+   *
    * Gets a new node from the specified supplier and appends
    * it to the child list of this node's parent. Note that
    * this node MUST NOT be a root node.
@@ -168,13 +204,15 @@ public:
    * Return: the newly appended child.
    */
   std::shared_ptr<T> append_sibling(Supplier<T>& supplier) {
-    if (!parent_.use_count()) {
+    if (auto p = parent()) {
+      return p->append_child(supplier);
+    } else {
       throw IllegalOnRoot("Cannot append a sibling to a root node.");
     }
-    return  parent()->append_child(supplier);
   }
 
-  /*
+  /* Retrieves the child at the specified index
+   *
    * Returns the child at the specified index or an empty
    * pointer if there is none.
    *
@@ -197,39 +235,59 @@ public:
         : std::shared_ptr<T>();
   }
 
-  /*
+  /* This node's child count
+   *
    * Returns the number of this node's children. Will return 0
    * for a leaf node.
    */
-  inline size_t child_count(void) const {
+  size_t child_count() const {
     return children_.size();
   }
 
-  /*
+  /* Detaches this node and its children from the containing tree
+   *
    * Detaches this node from its parent retaining
    * its children. Does nothing when called on a
    * root node.
    */
   void detach() {
-    if (parent_.use_count()) {
+    if (auto p = parent()) {
       disconnect_from_parent(find_in_parent());
     }
   }
 
-  /*
+  // Disconnects all of this node's children and moves them
+  // into the specified destination. The result is a vector
+  // of unrelated root nodes.
+  //
+  // Return: a vector containing the disconnected children.
+  std::vector<std::shared_ptr<T>> disconnect_all_children() {
+    std::vector<std::shared_ptr<T>> destination(children_);
+    children_.clear();
+    std::for_each(
+        destination.begin(),
+        destination.end(),
+        [](std::shared_ptr<T>& n){ n->parent_.reset(); });
+    return destination;
+  }
+
+  /* Excises this node
+   *
    * Detaches this node from its parent, moving its
    * children into its former location in the child
    * vector.
    *
    */
-  void excise(void) {
-    if (parent_.use_count()) {
-      auto my_parent = parent();
-      auto it = find_in_parent();
-      auto inserted_at = my_parent->children_.insert(
-          std::next(it), children_.begin(), children_.end());
-      children_.clear();
-      disconnect_from_parent(std::prev(inserted_at));
+  void excise() {
+    if (auto my_parent = parent()) {
+      if (has_children()) {
+        size_t child_count = children_.size();
+        my_parent->accommodate_additional_children(child_count);
+        auto insert_point = find_in_parent();
+        std::vector<std::shared_ptr<T>> children_to_promote = disconnect_all_children();
+        my_parent->insert_before(insert_point, children_to_promote);
+      }
+      detach();
     } else {
       throw IllegalOnRoot(
           "Cannot invoke excise() on a root node");
@@ -245,8 +303,7 @@ public:
    *         TreeCorruptError if this node is not a root
    *         and is not in its parent's child vector
    */
-  typename std::vector<std::shared_ptr<T>>::iterator
-      find_in_parent(void) {
+  std::vector<std::shared_ptr<T>>::iterator find_in_parent() {
     auto my_parent = parent();
     if (!my_parent) {
       throw IllegalOnRoot(
@@ -255,14 +312,15 @@ public:
     for (auto it = my_parent->children_.begin();
         it != my_parent->children_.end();
         ++it) {
-      if (same_node_as(*it)) {
+      if (this == (*it).get()) {
         return it;
       }
     }
     throw TreeCorruptError("Child not found in parent.");
   }
 
-  /*
+  /* Applies an action to children
+   *
    * Applies the specified action to this node's children.
    * Application is in order. Note that the action can
    * cancel the traversal.
@@ -298,7 +356,7 @@ public:
   }
 
 
-  inline bool has_children(void) const {
+    bool has_children() const {
     return !children_.empty();
   }
 
@@ -307,7 +365,7 @@ public:
    * this node is a leaf, i.e. if it has no children.
    * Equivalent to 0 == child_count()
    */
-  inline bool is_leaf(void) const {
+  bool is_leaf() const {
     return children_.empty();
   }
 
@@ -316,50 +374,25 @@ public:
    * root of its containing tree. Equivalent to
    * ! static_cast<bool>(parent()).
    */
-  inline bool is_root(void) const {
-    return !parent_.use_count();
-  }
-
-  virtual bool operator==(const std::shared_ptr<T>& that) final {
-    return same_node_as(that);
-  }
-
-  virtual bool operator!=(const std::shared_ptr<T>& that) final {
-    return !same_node_as(that);
+  bool is_root() const {
+    return !parent_.lock();
   }
 
   /*
    * Returns a shared pointer to this node's parent. The pointer
    * will be empty if this is a root node.
    */
-  inline typename std::shared_ptr<T> parent(void) {
+  std::shared_ptr<T> parent() {
     return parent_.lock();
-  }
-
-  /*
-   * Tests if the specified node is exactly the same instance as
-   * this node.
-   *
-   * Parameters:
-   * ----------
-   *
-   * Name                     Contents
-   * -----------------        --------------------------------------------
-   * that                     Points to the node to compare with this.
-   *                          Note that the method returns false if
-   *                          that is empty.
-   */
-  inline bool same_node_as(const std::shared_ptr<T> that) const {
-    return this == that.get();
   }
 
   /*
    * Returns this node type's supplier. To be implemented
    * ONLY by concrete classes.
    */
-  virtual Supplier<T>& supplier(void) = 0;
+  virtual Supplier<T>& supplier() = 0;
 
-  inline const char *type_name(void) {
+  const std::string& type_name() {
     return supplier().class_name();
   }
 };

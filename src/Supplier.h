@@ -48,7 +48,7 @@ template <typename T> class Supplier {
   std::string class_name_;
 
 protected:
-  Supplier(const char *class_name) :
+  Supplier(const std::string& class_name) :
     class_name_(class_name) {
   }
 
@@ -56,14 +56,14 @@ public:
   virtual ~Supplier() {
   }
 
-  inline const char *class_name(void) {
-    return class_name_.c_str();
+  const std::string& class_name() {
+    return class_name_;
   }
 
   /*
    * Create a node and return it wrapped in a shared pointer.
    */
-  virtual std::shared_ptr<T> make_shared(void) = 0;
+  virtual std::shared_ptr<T> make_shared() = 0;
 
   virtual bool operator==(const Supplier& that) const final {
     return this == &that;
@@ -75,7 +75,5 @@ public:
 };
 
 } /* namespace VisitingParseTree */
-
-
 
 #endif /* SUPPLIER_H_ */

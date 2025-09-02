@@ -24,8 +24,9 @@
 #ifndef TREECORRUPTERROR_H_
 #define TREECORRUPTERROR_H_
 
-#include <stdexcept>
 #include <string>
+
+#include "TreeException.h"
 
 namespace VisitingParseTree {
 
@@ -33,24 +34,15 @@ namespace VisitingParseTree {
  * Thrown when an operation detects tree corruption, e.g.
  * broken parent/child linkages.
  */
-class TreeCorruptError : public std::runtime_error {
+class TreeCorruptError : public TreeException {
 
 public:
-  inline TreeCorruptError(const char *message) :
-      std::runtime_error(message) {
-  }
 
-  inline TreeCorruptError(const std::string& message) :
-      std::runtime_error(message) {
-  }
-
-  inline TreeCorruptError(const TreeCorruptError& other) :
-      std::runtime_error(other) {
+  TreeCorruptError(const std::string& message) :
+      TreeException(message) {
   }
 };
 
 } /* namespace VisitingParseTree */
-
-
 
 #endif /* TREECORRUPTERROR_H_ */

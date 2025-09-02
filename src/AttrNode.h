@@ -24,11 +24,12 @@
 #ifndef ATTRNODE_H_
 #define ATTRNODE_H_
 
+#include <unordered_map>
+#include <utility>
+
 #include "Attribute.h"
 #include "AttributeFunction.h"
 #include "Host.h"
-
-#include <unordered_map>
 
 /*
  * Base class for nodes containing string-valued attributes.
@@ -47,19 +48,41 @@
 
 namespace VisitingParseTree {
 
+static const std::string empty_string;
+
 template <typename T> class AttrNode : public Host<T> {
   std::unordered_map<const Attribute*, std::string> attributes_;
+
 protected:
-  AttrNode(void) :
-      attributes_() {
-  }
+  AttrNode() = default;
+
 
 public:
-  virtual ~AttrNode() {
+  virtual ~AttrNode() = default;
+
+  int attribute_count() const {
+    return attributes_.size();
   }
 
-  int attribute_count(void) const {
-    return attributes_.size();
+  /** Erases the specified attribute
+   *
+   * Erases the specified attribute if it exists; does nothing if the
+   * specified attribute does not exist.
+   *
+   * Parameters:
+   * ----------
+   *
+   * Name                     Contents
+   * -----------------        --------------------------------------------
+   * attribute                The attribute to erase
+   *
+   * Returns: a shared pointer to this node to support chaining
+   */
+  std::shared_ptr<T> erase(const Attribute& attribute) {
+    if (has(attribute)) {
+      attributes_.erase(&attribute);
+    }
+    return std::enable_shared_from_this<T>::shared_from_this();
   }
 
   void for_all_attributes(AttributeFunction& f) {
@@ -68,19 +91,60 @@ public:
     }
   }
 
-  std::optional<const std::string> get(const Attribute& attribute) {
+  /** Returns the specified attribute's value
+   *
+   * Parameters:
+   * ----------
+   *
+   * Name                     Contents
+   * -----------------        --------------------------------------------
+   * attribute                The attribute to return
+   *
+   * Returns: the attribute's value if it has been set, an empty string
+   *          otherwise. Note that attributes CANNOT be set to an
+   *          empty value.
+   */
+  const std::string& get(const Attribute& attribute) const {
     return has(attribute)
-        ? std::optional<const std::string>(attributes_.at(&attribute))
-        : std::nullopt;
+        ? attributes_.at(&attribute)
+        : empty_string;
   }
 
-  inline bool has(const Attribute& attribute) {
+  /** Tests if this node has a specified attribute, i.e. the attribute has a value
+   *
+   * Parameters:
+   * ----------
+   *
+   * Name                     Contents
+   * -----------------        --------------------------------------------
+   * attribute                The attribute to set
+   *
+   * Returns: true if and only if the attribute has been set.
+   */
+  bool has(const Attribute& attribute) const {
     return attributes_.contains(&attribute);
   }
 
+  /** Sets a non-empty attribute value, erases the attribute if value is empty
+   *
+   * Parameters:
+   * ----------
+   *
+   * Name                     Contents
+   * -----------------        --------------------------------------------
+   * attribute                The attribute to set
+   * value                    The value to set. SHOULD not be empty,
+   *                          as the attribute will be erased if it is.
+   *
+   * Returns: a shared pointer to this node to support chaining
+   */
   std::shared_ptr<T> set(const Attribute& attribute, const std::string value) {
-    attributes_.insert_or_assign(&attribute, value);
-    return std::enable_shared_from_this<T>::shared_from_this();
+    if (value.empty()) {
+      return erase(attribute);
+    } else {
+      attributes_.insert_or_assign(&attribute, value);
+      return std::enable_shared_from_this<T>::shared_from_this();
+    }
   }
 };
 
