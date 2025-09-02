@@ -64,6 +64,23 @@ public:
     return attributes_.size();
   }
 
+  std::shared_ptr<T> copy_attributes_to(std::shared_ptr<T> that) {
+    class : public AttributeFunction {
+      std::shared_ptr<T> destination_;
+
+    public:
+      void set_destination(std::shared_ptr<T> destination) {
+        destination_ = destination;
+      }
+      virtual void operator() (const Attribute* const& attr, const std::string& value) {
+        destination_->set(*attr, value);
+      }
+    } action;
+    action.set_destination(that);
+    for_all_attributes(action);
+    return that;
+  }
+
   /** Erases the specified attribute
    *
    * Erases the specified attribute if it exists; does nothing if the
