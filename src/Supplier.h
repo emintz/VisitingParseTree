@@ -24,11 +24,12 @@
 #ifndef SUPPLIER_H_
 #define SUPPLIER_H_
 
-#include "Node.h"
-
 #include <concepts>
 #include <memory>
 #include <string>
+
+#include "BaseSupplier.h"
+#include "Node.h"
 
 namespace VisitingParseTree {
 
@@ -38,7 +39,7 @@ namespace VisitingParseTree {
  *
  * TODO: find a way to enforce the base class requirement.
  */
-template <typename T> class Supplier {
+template <typename T> class Supplier : public BaseSupplier {
 //  static_assert(std::is_base_of_v<Node<T>, T> == true);
   Supplier(Supplier&) = delete;
   Supplier(const Supplier&) = delete;
