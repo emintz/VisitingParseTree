@@ -63,7 +63,6 @@ public:
               on_exit_,
               after_descent,
               before_ascent) {
-
   }
 
   virtual ~VisitingTraversal() {
