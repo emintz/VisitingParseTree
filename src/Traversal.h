@@ -24,11 +24,11 @@
 #ifndef SRC_TRAVERSAL_H_
 #define SRC_TRAVERSAL_H_
 
+#include <memory>
+
 #include "NodeAction.h"
 #include "TraversalStatus.h"
 #include "VoidFunction.h"
-
-#include <memory>
 
 namespace VisitingParseTree {
 
@@ -64,9 +64,9 @@ public:
     if (TraversalStatus::CONTINUE == status && node->has_children()) {
       after_descent_();
       status = node->for_each_child(*this);
+      before_ascent_();
     }
     if (TraversalStatus::CANCEL != status) {
-      before_ascent_();
       status = on_exit_(node);
     }
     return TraversalStatus::BYPASS_CHILDREN != status
