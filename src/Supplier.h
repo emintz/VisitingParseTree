@@ -65,14 +65,6 @@ public:
    * Create a node and return it wrapped in a shared pointer.
    */
   virtual std::shared_ptr<T> make_shared() = 0;
-
-  virtual bool operator==(const Supplier& that) const final {
-    return this == &that;
-  }
-
-  virtual bool operator!=(const Supplier& that) const final {
-    return this != &that;
-  }
 };
 
 } /* namespace VisitingParseTree */

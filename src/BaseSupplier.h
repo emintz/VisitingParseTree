@@ -28,6 +28,14 @@ public:
   int id() const {
     return id_;
   }
+
+  bool operator==(const BaseSupplier& that) const {
+    return id_ == that.id_;
+  }
+
+  bool operator !=(const BaseSupplier& that) const {
+    return id_ != that.id_;
+  }
 };
 
 } /* namespace VisitingParseTree */
