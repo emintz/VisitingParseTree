@@ -30,8 +30,8 @@ class Level {
   }
 
   void print_prefix(std::ostream& stream) {
-    ++node_index_;
     if (at_top_) {
+      ++node_index_;
       stream << " +--";
     } else {
       stream <<
@@ -60,6 +60,7 @@ class Context {
   friend class AscendAction;
   friend class VisitingParseTree::AttrNodePrinter;
   friend class DescendAction;
+  friend class OnEntry;
   std::vector<Level> levels_;
   int current_child_count_;
   Context() :
@@ -138,7 +139,7 @@ class AscendAction : public VoidFunction {
   }
 
 public:
-  virtual void operator() () {
+  virtual void operator() () override {
     context_.ascend();
   }
 };
@@ -154,6 +155,7 @@ class OnEntry : public NodeAction<BaseAttrNode> {
   }
 public:
   virtual TraversalStatus operator()(std::shared_ptr<BaseAttrNode> node) override {
+    context_.current_child_count(node->child_count());
     stream_ << context_ << node->type_name() << " [";
     AttributePrinter attribute_printer(stream_);
     node->for_all_attributes(attribute_printer);
