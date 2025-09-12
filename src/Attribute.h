@@ -21,6 +21,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/*******************************
+ * @file Attribute.h
+ *
+ * @brief Base class for attribute key classes. Subtype instances are
+ *        used to identify attributes within unordered maps of
+ *        <Attribute, std::string> pairs.
+ ********************************/
 
 #pragma once
 
@@ -31,30 +38,44 @@
 
 namespace VisitingParseTree {
 
-/*
- * Base class for attribute types, which are also used
+/**
+ * @brief Base class for attribute types, which are also used
  * as keys in an std::unordered:map. Note that subclass
  * MUST be static const and allocated during declaration.
  *
  * TODO: move hashing to base class (low priority)
  */
 class Attribute : public BaseAttribute {
-  Attribute(const Attribute&) = delete;
-  Attribute& operator=(const Attribute&) = delete;
 
   const size_t hash_;
   const std::string name_;
 
 protected:
+  /**
+   * Construct an Attribute instance
+   *
+   * @param name the instance's name, which __should__ be globally unique
+   */
   Attribute(const char *name);
 
 public:
+  Attribute(const Attribute&) = delete;
+  Attribute& operator=(const Attribute&) = delete;
   virtual ~Attribute() = default;
 
+  /**
+   *
+   * @return this attribute's memoized hash, whose value is
+   *         set at construction.
+   */
   size_t hash(void) const {
     return hash_;
   }
 
+  /**
+   *
+   * @return this attributes name, which is set at construction
+   */
   const std::string& name(void) const {
     return name_;
   }
@@ -64,9 +85,22 @@ public:
 
 namespace std {
 
+/**
+ * Attribute-specific hash function. Providing an attribute-specific
+ * std::hash implementation allows attributes to be used to key an
+ * unordered map, which is how attributed nodes store their attribute
+ * values.
+ */
 template<>
 class hash<VisitingParseTree::Attribute> {
 public:
+  /**
+   * Attribute hashing algorithm
+   *
+   * @param attribute the attribute to hash
+   * @return the attribute's hash code. Note that the attribute
+   *         memoizes its hash code upon construction.
+   */
   std::uint64_t operator() (const VisitingParseTree::Attribute& attribute) const {
     return attribute.hash();
   }

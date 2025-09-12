@@ -5,6 +5,43 @@
  *      Author: Eric Mintz
  */
 
+/**
+ * @file AttrNodePrinter.cpp
+ *
+ * @brief Pretty print logic
+ *
+ * The \c AttrNodePrinter class provides a tree traversal that
+ * pretty prints a tree as it descends. Output is indented to
+ * and annotated to show the tree structure, and includes each
+ * node's type and attributes as shown in the following example
+ * output.
+ *
+ *        RootNode []
+ *         +--PlusNode []
+ *             +--TimesNode []
+ *             |   +--TimesNode []
+ *             |   |   +--IntegerNode [VALUE->17 ]
+ *             |   |   +--IntegerNode [VALUE->19 ]
+ *             |   +--IntegerNode [VALUE->4 ]
+ *             +--MinusNode []
+ *                 +--IntegerNode [VALUE->5 ]
+ *                 +--DivNode []
+ *                     +--IntegerNode [VALUE->6 ]
+ *                     +--IntegerNode [VALUE->3 ]
+ *
+ * Nodes can be prefixed with a sequence of
+ *
+ * * Nothing at all, the empty string, for the root
+ * * \c +-- for a node at a non-root level
+ * * A pipe character to connect parents of the
+ *   currently printing node
+ * * Spaces when the an ancestor of the currently
+ *   printing is last in its child list.
+ *
+ * It is hoped that the resulting output portrays the tree structure
+ * clearly and unambiguously.
+ */
+
 #include <vector>
 
 #include "AttributeFunction.h"
@@ -17,18 +54,48 @@ namespace VisitingParseTree {
 
 namespace TreePrinter {
 
+/**
+ * Tracks state during recursive descent
+ *
+ * Level-specific state must be preserved as the print traversal
+ * descends. Level-specific state includes
+ *
+ * * Top of stack
+ * * Number of nodes at this level
+ * * Current position
+ *
+ * The state determines how to prefix the current node.
+ *
+ * Note that application code \b SHOULD not use this class, and that
+ * all logic is private to prevent meddling.
+ */
 class Level {
   friend class AscendAction;
   friend class Context;
   friend class DescendAction;
-  const int node_count_;  // Number of nodes in this level
-  int node_index_;  // 0-based node index
-  bool at_top_;
+  const int node_count_;  /** Number of nodes in this level */
+  int node_index_;  /** 0-based node index */
+  bool at_top_; /** \c true if and only if this is the top level */
 
+  /**
+   * Sets the top of stack indicator. The indicator should be
+   * set \c true
+   *
+   * * on construction, where the new instance is placed on the stack
+   * * when a stack pop reveals this \c Level
+   *
+   * @param at_top[in] \c true if and only if this \c Level
+   *                   is at the top of the \c Level stack.
+   */
   void set_top(bool at_top) {
     at_top_ = at_top;
   }
 
+  /**
+   * Prints a print level prefix to the specified \c stream
+   *
+   * @param stream receives pretty printed output
+   */
   void print_prefix(std::ostream& stream) {
     if (at_top_) {
       ++node_index_;
@@ -42,12 +109,22 @@ class Level {
   }
 
 public:
+  /**
+   * Constructor
+   *
+   * @param node_count the number of nodes at this traversal level
+   */
   Level(int node_count) :
     node_count_(node_count),
     node_index_(0),
     at_top_(true) {
   }
 
+  /**
+   * Move constructor
+   *
+   * @param from source
+   */
   Level(Level&& from) :
     node_count_(std::move(from.node_count_)),
     node_index_(std::move(from.node_index_)),

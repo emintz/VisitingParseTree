@@ -21,6 +21,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**************************************************************\
+ * @file AttrNode.h
+ *
+ * @brief Base class for nodes that supports attributes. Since
+ *        AttrNode descends from Host, subtypes also support
+ *        double dispatch-based visitation.
+ **************************************************************/
+
 #ifndef ATTRNODE_H_
 #define ATTRNODE_H_
 
@@ -40,6 +48,13 @@
  * TODO: enforce
  */
 
+/**
+ * @file AttrNode.h
+ *
+ * @brief Templated base class for nodes that have \c std::string valued
+ *        attributes.
+ */
+
 #include "Attribute.h"
 
 #include <optional>
@@ -50,8 +65,14 @@ namespace VisitingParseTree {
 
 static const std::string empty_string;
 
+/**
+ * @brief Base class for nodes that have \c std::string valued attributes.
+ *
+ * @tparam T node type, which \b MUST be based on
+ *           \c AttrNode<T>
+ */
 template <typename T> class AttrNode : public Host<T> {
-  std::unordered_map<const Attribute*, std::string> attributes_;
+  std::unordered_map<const Attribute*, std::string> attributes_; /** Attributes */
 
 protected:
   AttrNode() = default;
@@ -60,23 +81,30 @@ protected:
 public:
   virtual ~AttrNode() = default;
 
+  /**
+   * @brief Returns the number of attribute values this node contains
+   *
+   * @return the number of attributes as described above.
+   */
   int attribute_count() const {
     return attributes_.size();
   }
 
-  /* Clones this node
+  /**
+   * @brief Clones this node
    *
    * Allocates a node of the same type as this and copies this
    * node's attributes to it.
    *
-   * Returns: the newly allocated node, as described above.
+   * @return the newly allocated node, as described above.
    */
   std::shared_ptr<T> clone() {
     auto copy = AttrNode<T>::empty_copy();
     return copy_attributes_to(copy);
   }
 
-  /* Copies this nodes attributes to another node.
+  /**
+   * @brief Copies this nodes attributes to another node.
    *
    * Copies every attribute of this node to another node. This
    * node is not altered. The method overwrites attributes in
@@ -84,17 +112,35 @@ public:
    * attributes will be overwritten and non-conflicting
    * attributes will remain unchanged.
    *
-   * Returns: a shared pointer to the destination node, for
-   *          chaining.
+   * @param that[out] node to receive the copied attributes
+   *
+   * @return a shared pointer to the destination node, for
+   *         chaining.
    */
   std::shared_ptr<T> copy_attributes_to(std::shared_ptr<T> that) {
+    /**
+     * @brief Anonymous class that copies attributes to a
+     *        specified \c AttrNode. This method is meant to
+     *        be past to \c AttrNode.for_all_attributes().
+     */
     class : public AttributeFunction {
       std::shared_ptr<T> destination_;
 
     public:
+      /**
+       * @brief Sets the node to receive the copied attributes
+       *
+       * @param destination[in] receiving node
+       */
       void set_destination(std::shared_ptr<T> destination) {
         destination_ = destination;
       }
+      /**
+       * @brief copies an attribute to the destination node
+       *
+       * @param attr attribute type
+       * @param value \c std::string attribute value
+       */
       virtual void operator() (const Attribute* const& attr, const std::string& value) {
         destination_->set(*attr, value);
       }
@@ -104,7 +150,8 @@ public:
     return that;
   }
 
-  /* Erases the specified attribute
+  /**
+   * @brief Erases the specified attribute
    *
    * Erases the specified attribute if it exists; does nothing if the
    * specified attribute does not exist.
@@ -112,9 +159,7 @@ public:
    * Parameters:
    * ----------
    *
-   * Name                     Contents
-   * -----------------        --------------------------------------------
-   * attribute                The attribute to erase
+   * @param attribute[in] The attribute to erase
    *
    * Returns: a shared pointer to this node to support chaining
    */
@@ -125,6 +170,11 @@ public:
     return std::enable_shared_from_this<T>::shared_from_this();
   }
 
+  /**
+   * @brief Applies an
+   *
+   * @param f
+   */
   void for_all_attributes(AttributeFunction& f) {
     for (const auto&[key, value] : attributes_) {
       f(key, value);
