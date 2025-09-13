@@ -29,8 +29,8 @@ namespace VisitingParseTree {
 /**
  * Constructor
  *
- * @param name[in] attribute name, which \b SHOULD be globally
- *                 should be globally unique
+ * @param name attribute name, which \b SHOULD be globally
+ *             should be globally unique
  */
 Attribute::Attribute(const char *name) :
     BaseAttribute(),

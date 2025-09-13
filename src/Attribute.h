@@ -47,8 +47,8 @@ namespace VisitingParseTree {
  */
 class Attribute : public BaseAttribute {
 
-  const size_t hash_;
-  const std::string name_;
+  const size_t hash_;  /** Attribute hash value. TODO: move to base class. */
+  const std::string name_;  /** Fully qualified node class name. */
 
 protected:
   /**

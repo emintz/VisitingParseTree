@@ -21,6 +21,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file Supplier.h
+ *
+ * Node factory API
+ */
 #ifndef SUPPLIER_H_
 #define SUPPLIER_H_
 
@@ -39,6 +44,18 @@ namespace VisitingParseTree {
  *
  * TODO: find a way to enforce the base class requirement.
  */
+/**
+ * @brief Base class for all node factories
+ *
+ * Provides an API for allocating nodes. The node generator
+ * will emit one \c Supplier subtype for each generated concrete
+ * node type, and will provide the nodes fully qualified class name
+ * to its constructor. Concrete node classes will contain a static
+ * instance of their suppliers, which \b must be the \b only instance
+ * of the supplier subtype,
+ *
+ * @tparam T node type. See Node documentation for restrictions.
+ */
 template <typename T> class Supplier : public BaseSupplier {
 //  static_assert(std::is_base_of_v<Node<T>, T> == true);
   Supplier(Supplier&) = delete;
@@ -46,9 +63,14 @@ template <typename T> class Supplier : public BaseSupplier {
   Supplier& operator=(Supplier&) = delete;
   Supplier& operator=(const Supplier&) = delete;
 
-  std::string class_name_;
+  std::string class_name_; /** Generated node class name */
 
 protected:
+  /**
+   * Constructor
+   *
+   * @param class_name fully qualifhed supplied node class name
+   */
   Supplier(const std::string& class_name) :
     class_name_(class_name) {
   }
@@ -57,12 +79,19 @@ public:
   virtual ~Supplier() {
   }
 
+  /**
+   *
+   * @return the fully qualified class name of the generated node. This
+   *         is set at construction.
+   */
   const std::string& class_name() {
     return class_name_;
   }
 
-  /*
-   * Create a node and return it wrapped in a shared pointer.
+  /**
+   * @brief Creates a node and returns it wrapped in a shared pointer.
+   *
+   * @return the returned shared pointer as described above.
    */
   virtual std::shared_ptr<T> make_shared() = 0;
 };

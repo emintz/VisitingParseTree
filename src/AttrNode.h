@@ -112,25 +112,25 @@ public:
    * attributes will be overwritten and non-conflicting
    * attributes will remain unchanged.
    *
-   * @param that[out] node to receive the copied attributes
+   * @param that node to receive the copied attributes
    *
    * @return a shared pointer to the destination node, for
    *         chaining.
    */
   std::shared_ptr<T> copy_attributes_to(std::shared_ptr<T> that) {
+
     /**
-     * @brief Anonymous class that copies attributes to a
-     *        specified \c AttrNode. This method is meant to
-     *        be past to \c AttrNode.for_all_attributes().
+     * @brief Copies attributes from one \c AttrNode to another. The
+     *        source node is not changed.
      */
-    class : public AttributeFunction {
-      std::shared_ptr<T> destination_;
+    class Copy: public AttributeFunction {
+      std::shared_ptr<T> destination_; /** Node to receive attributes */
 
     public:
       /**
        * @brief Sets the node to receive the copied attributes
        *
-       * @param destination[in] receiving node
+       * @param destination receiving node
        */
       void set_destination(std::shared_ptr<T> destination) {
         destination_ = destination;
@@ -141,7 +141,8 @@ public:
        * @param attr attribute type
        * @param value \c std::string attribute value
        */
-      virtual void operator() (const Attribute* const& attr, const std::string& value) {
+      virtual void operator() (
+          const Attribute* const& attr, const std::string& value) {
         destination_->set(*attr, value);
       }
     } action;
@@ -159,7 +160,7 @@ public:
    * Parameters:
    * ----------
    *
-   * @param attribute[in] The attribute to erase
+   * @param attribute The attribute to erase
    *
    * Returns: a shared pointer to this node to support chaining
    */
@@ -173,7 +174,8 @@ public:
   /**
    * @brief Applies an
    *
-   * @param f
+   * @param f Applied to each attribute. Application
+   *          order is arbitrary.
    */
   void for_all_attributes(AttributeFunction& f) {
     for (const auto&[key, value] : attributes_) {
