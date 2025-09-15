@@ -51,12 +51,15 @@ class BaseSupplier {
   static int next_id();
   const int id_;  /** Globally unique \c Supplier identifier */
 protected:
-  BaseSupplier();
-public:
   /**
    * @brief Constructor
    *
    * Assigns globally unique identifiers to new instances.
+   */
+  BaseSupplier();
+public:
+  /**
+   * @brief Destructor
    */
   virtual ~BaseSupplier() = default;
   BaseSupplier(const BaseSupplier &other) = delete;
@@ -71,10 +74,25 @@ public:
     return id_;
   }
 
+  /**
+   * Comparison
+   *
+   * @param that node to compare.
+   * @return \c true if and only if \c this is the \b same \b instance
+   *         as \c that.
+   */
   bool operator==(const BaseSupplier& that) const {
     return id_ == that.id_;
   }
 
+  /**
+   * Comparison
+   *
+   * @param that the node to compare
+   *
+   * @return \c true if and only if \c this is \b not the same instance
+   *         as \c that.
+   */
   bool operator !=(const BaseSupplier& that) const {
     return id_ != that.id_;
   }

@@ -22,6 +22,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file TraversalStatus.h
+ *
+ * Traversal control enumeration
+ */
 #ifndef TRAVERSAL_STATUS_H_
 #define TRAVERSAL_STATUS_H_
 
@@ -31,26 +36,31 @@ namespace VisitingParseTree {
  * Indicates the state of a traversal and the
  * next action that should be taken.
  */
+/**
+ * @brief Governs traversal behavior
+ *
+ * Returned by node actions to control the traversal.
+ */
 enum class TraversalStatus {
-  /*
+  /**
    * Continue running the traversal. Process children
    * after entry; return after exit. Traversal is OK.
    */
   CONTINUE,
-  /*
+  /**
    * Bypass processing children on exit; equivalent to
-   * CONtiNUE on exit. Traversal is OK.
+   * CONTINUE on exit. Traversal is OK.
    */
   BYPASS_CHILDREN,
-  /*
+  /**
    * Cancel the traversal immediately. The traversal stops
-   * WITHOUT invoking additional actions. In particular,
+   * \b WITHOUT invoking additional actions. In particular,
    * if if returned on entry, the bypass both the node's
-   * children AND exit processing. MIGHT indicate an
+   * children AND this node's exit processing. \b MIGHT indicate an
    * error or might simply mean that further processing
    * is not required.
    */
-  CANCEL,
+  CANCEL,         /** Cancel the traversal immediately without further processing */
 };
 
 }  /* Namespace VisitingParseTree */

@@ -21,6 +21,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file Traversal.h
+ *
+ * @brief Basic depth-first in-order tree traversal
+ */
 #ifndef SRC_TRAVERSAL_H_
 #define SRC_TRAVERSAL_H_
 
@@ -38,6 +43,31 @@ namespace VisitingParseTree {
  *
  * TODO: enforce
  */
+/**
+ * @brief Basic depth-first in-order tree traversal for \t Node and its
+ *        subclasses.
+ *
+ * A traversal recurses a parse tree depth first, entering a node, traversing
+ * its children, then exiting the previously entered node. It is bound to
+ * the following actions:
+ *
+ *   - Node entry, a \c NodeAction that the traversal applies to a
+ *     newly entered node.
+ *   - Before descent, a \c VoidFinction that the traversal invokes
+ *     before it traverses the entered node's children
+ *   - After ascent, a \c VoidFunction that the traversal invokes
+ *     after it traverses the entered node's children
+ *   - Node exit, a \c NodeAction that the traversal applies after
+ *     it processes a node's children.
+ *
+ * Note that the traversal applies the node entry and node exit actions
+ * to a leaf node, but \b does \b not invoke the before decent or after ascent
+ * action. Similarly, the traversal \b does \b not invoke the descent
+ * action before processing the root, nor the ascent action afterward.
+ *
+ * @tparam T node type being traversed. All traversed nodes must inherit
+ *         this class directly or indirectly
+ */
 template <typename T> class Traversal : public NodeAction<T> {
   NodeAction<T>& on_entry_;
   NodeAction<T>& on_exit_;
@@ -46,8 +76,22 @@ template <typename T> class Traversal : public NodeAction<T> {
 
 public:
 
-  virtual ~Traversal() {}
+  /**
+   * Destructor
+   */
+  virtual ~Traversal() = default;
 
+  /**
+   * Creates a \c Traversal bound to the specified action
+   *
+   * @param on_entry applied to a newly entered node
+   * @param on_exit applied after traversing a node's children
+   * @param after_descent invoked between node entry application and
+   *        traversing the node's children. Not invoked on leaf nodes.
+   * @param before_ascent applied after processing a node's children and
+   *        before invoking the exit action on the parent node. Not
+   *        invoked on leaf nodes.
+   */
   Traversal(
       NodeAction<T>& on_entry,
       NodeAction<T>& on_exit,
@@ -59,6 +103,17 @@ public:
           before_ascent_(before_ascent) {
   }
 
+  /**
+   * @brief Processes this node and its children
+   *
+   * Recursive descent that processes a tree of \c Node<T>, depth-first,
+   * in-order. Note that this method is recursive.
+   *
+   * @param node current node to process.
+   * @return status that governs the traversal
+   *
+   * \see TraversalStatus for return value semantics
+   */
   virtual TraversalStatus operator() (std::shared_ptr<T> node) override {
     auto status = on_entry_(node);
     if (TraversalStatus::CONTINUE == status && node->has_children()) {

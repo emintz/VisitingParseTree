@@ -54,7 +54,9 @@ namespace VisitingParseTree {
  * instance of their suppliers, which \b must be the \b only instance
  * of the supplier subtype,
  *
- * @tparam T node type. See Node documentation for restrictions.
+ * @tparam T node type.
+ *
+ * \see Node for restrictions on \c T.
  */
 template <typename T> class Supplier : public BaseSupplier {
 //  static_assert(std::is_base_of_v<Node<T>, T> == true);

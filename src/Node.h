@@ -72,8 +72,9 @@ template <typename T> class Supplier;
  * \b must subclass the \c Supplier template. This is required
  * by the node generator, another component of this project.
  *
- * @tparam T subtype. Subtypes must extend \c Node<T>. If, e.g.
- *         \c MyNode subclass mist inherit from \c Node<MyNode>.
+ * @tparam T subtype. When a subtype inherits directly from the \c Node
+ *         template, \c T must be set to the subtype. If, for example,
+ *         \c MyNode inherits \c Node, \c T must be \c MyNode.
  */
 template <typename T> class Node :
     public BaseNode,
@@ -165,7 +166,7 @@ protected:
    *        in which case this method becomes an expensive no-op.
    * @return an iterator pointing to the first inserted element. Prefer
    *         the returned iterator to \c insert_start, as the former
-   *         is guaranteed to be valid.
+   *         is guaranteed to be valid and the latter is not.
    */
   std::vector<std::shared_ptr<T>>::iterator insert_before(
       std::vector<std::shared_ptr<T>>::iterator insert_start,
@@ -490,7 +491,8 @@ public:
   virtual Supplier<T>& supplier() = 0;
 
   /**
-   * @brief Provides this node's type name
+   * @brief Provides this node's type name. Concrete node
+   *        classes \b must implement this; abstract nodes \b must \b not.
    *
    * @return this node's type name
    */

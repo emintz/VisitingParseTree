@@ -21,6 +21,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file BaseAttrNode.h
+ *
+ * Base class for generated node classes together with support classes
+ */
+
 #ifndef BASEATTRNODE_H_
 #define BASEATTRNODE_H_
 
@@ -32,14 +38,41 @@
 namespace VisitingParseTree {
 
 class BaseAttrNode;
-
 class BaseAttrNodeVisitor {
-public:
-  virtual ~BaseAttrNodeVisitor();
 
+/**
+ * @brief Visitor API for \c BaseAttrNode
+ *
+ * If the \c Visitor passed to \c BaseAttrNode::accept() implements
+ * \c BaseAttrNodeVisitor, \c BaseAttrNode::accept() will pass itself
+ * (i.e. \this) to the visitor's \c processBaseNode implementation. Otherwise
+ * \c BaseAttrNode::accept() does nothing.
+ * \c BaseAttrNodeVisitor::processBaseAttrNode supports a processor of
+ * last resort, a method to invoke if no node type-specific methods
+ * exist.
+ *
+ */
+public:
+  virtual ~BaseAttrNodeVisitor() = default;
+
+  /**
+   * Base node processor
+   *
+   * @param host the \c BaseAttrNode to process
+   *
+   * @return traversal control indication
+   *
+   * \see TraversalStatus
+   */
   virtual TraversalStatus processBaseAttrNode(BaseAttrNode *host) = 0;
 };
 
+/**
+ * @brief Root of the generated node hierarchy
+ *
+ * The node generator produces nodes in a single-rooted inheritance hierarchy
+ * rooted at \c BaseAttrNode.
+ */
 class BaseAttrNode: public AttrNode<BaseAttrNode> {
   friend class BaseAttrNodeSupplier;
 
@@ -49,9 +82,11 @@ class BaseAttrNode: public AttrNode<BaseAttrNode> {
   BaseAttrNode& operator=(BaseAttrNode &&other) = delete;
 
 protected:
-  inline BaseAttrNode() {
-  }
+  BaseAttrNode() = default;
 
+  /**
+   * @brief Base class for the concrete generated node factories
+   */
   class BaseAttrNodeSupplier : public Supplier<BaseAttrNode> {
   protected:
     BaseAttrNodeSupplier(const char *class_name) :
@@ -60,7 +95,7 @@ protected:
 
 public:
 
-  virtual ~BaseAttrNode();
+  virtual ~BaseAttrNode() = default;
 
   virtual TraversalStatus accept(Visitor *visitor) override;
 };

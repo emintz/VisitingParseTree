@@ -25,14 +25,6 @@
 
 namespace VisitingParseTree {
 
-
-BaseAttrNodeVisitor::~BaseAttrNodeVisitor() {
-}
-
-
-BaseAttrNode::~BaseAttrNode() {
-}
-
 TraversalStatus BaseAttrNode::accept(Visitor *visitor) {
   auto concrete_visitor = dynamic_cast<BaseAttrNodeVisitor *>(visitor);
   return concrete_visitor

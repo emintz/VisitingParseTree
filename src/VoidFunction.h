@@ -21,17 +21,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file VoidFunction.h
+ *
+ * Void function API.
+ */
+
 #ifndef VOIDFUNCTION_H_
 #define VOIDFUNCTION_H_
 
 namespace VisitingParseTree {
 
+/**
+ * @brief Declares an API having a single method that takes no argument
+ * and returns no value.
+ */
 class VoidFunction {
 public:
 
   virtual ~VoidFunction() {
   }
 
+  /**
+   * @brief Overriden to provide function logic. Note that the logic
+   *        can cause arbitrary side effects.
+   */
   virtual void operator() (void) = 0;
 };
 } /* namespace VisitingParseTree */

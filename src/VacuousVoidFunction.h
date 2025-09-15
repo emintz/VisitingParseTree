@@ -21,6 +21,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file VacuousVoidFunction.h
+ *
+ * @brief Vacuous (i.e. do-nothing) \c VoidFunction implementation
+ */
+
 #ifndef SRC_VACUOUSVOIDFUNCTION_H_
 #define SRC_VACUOUSVOIDFUNCTION_H_
 
@@ -32,9 +38,20 @@
  */
 namespace VisitingParseTree {
 
+/**
+ * @brief A \c VoidFunction implementation that does absolutely
+ *        nothing.
+ *
+ * An empty, do-nothing \c VoidFunction, a place holder value.
+ */
 class VacuousVoidFunction : public VoidFunction {
 public:
 
+  /**
+   * The sole \c VacuousVoidFunction instance. Since the function
+   * is completely stateless, there's no point in instantiating
+   * it multiple times.
+   */
   static VacuousVoidFunction INSTANCE;
 
   virtual ~VacuousVoidFunction();

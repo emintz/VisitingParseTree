@@ -21,6 +21,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file NodeAction.h
+ *
+ * API for acting on a \c Node
+ *
+ */
 #ifndef NODEACTION_H_
 #define NODEACTION_H_
 
@@ -37,6 +43,18 @@ namespace VisitingParseTree {
  *
  * TODO: find a way to enforce base type.
  */
+/**
+ * @brief Base class for actions that are applied to nodes
+ *
+ * Provides a mechanism for binding actions to node traversals.
+ * Implementations can apply arbitrary transformations to nodes
+ * and can cause arbitrary side effects.
+ *
+ * @tparam T node type.
+ *
+ * \see Node for restrictions on \c T
+ * \see Traversal for main use case
+ */
 template <typename T> class NodeAction {
 protected:
   NodeAction(void) = default;
@@ -44,6 +62,15 @@ protected:
 public:
   virtual ~NodeAction() = default;
 
+  /**
+   * Apply implementation's logic to the specified \c node. Implementations
+   * can apply arbitrary transformations and cause arbitrary side effects.
+   *
+   * @param node \c Node (or subclass thereof) to process
+   * @return \c TraversalStatus that governs the containing traversal.
+   *
+   * @see TraversalStatus for traversal control details
+   */
   virtual TraversalStatus operator()(std::shared_ptr<T> node) = 0;
 };
 
