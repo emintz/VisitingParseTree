@@ -20,18 +20,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+/**
+ * @file Attribute.cpp
+ *
+ * Attribute implementation.
+ */
 #include <functional>
 
 #include "Attribute.h"
 
 namespace VisitingParseTree {
 
-/**
- * Constructor
- *
- * @param name attribute name, which \b SHOULD be globally
- *             should be globally unique
- */
 Attribute::Attribute(const char *name) :
     BaseAttribute(),
     hash_(id_hash(id())),

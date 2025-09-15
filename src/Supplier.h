@@ -71,7 +71,8 @@ protected:
   /**
    * Constructor
    *
-   * @param class_name fully qualifhed supplied node class name
+   * @param class_name fully qualified supplied node class name.
+   *        \c class_name \b should be globally unique.
    */
   Supplier(const std::string& class_name) :
     class_name_(class_name) {

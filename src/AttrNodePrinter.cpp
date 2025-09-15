@@ -3,43 +3,28 @@
  *
  *  Created on: Sep 6, 2025
  *      Author: Eric Mintz
+ *
+ * Copyright (C) 2025 Eric Mintz
+ * All Rights Reserved
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
  * @file AttrNodePrinter.cpp
  *
  * @brief Pretty print logic
- *
- * The \c AttrNodePrinter class provides a tree traversal that
- * pretty prints a tree as it descends. Output is indented to
- * and annotated to show the tree structure, and includes each
- * node's type and attributes as shown in the following example
- * output.
- *
- *        RootNode []
- *         +--PlusNode []
- *             +--TimesNode []
- *             |   +--TimesNode []
- *             |   |   +--IntegerNode [VALUE->17 ]
- *             |   |   +--IntegerNode [VALUE->19 ]
- *             |   +--IntegerNode [VALUE->4 ]
- *             +--MinusNode []
- *                 +--IntegerNode [VALUE->5 ]
- *                 +--DivNode []
- *                     +--IntegerNode [VALUE->6 ]
- *                     +--IntegerNode [VALUE->3 ]
- *
- * Nodes can be prefixed with a sequence of
- *
- * * Nothing at all, the empty string, for the root
- * * \c +-- for a node at a non-root level
- * * A pipe character to connect parents of the
- *   currently printing node
- * * Spaces when the an ancestor of the currently
- *   printing is last in its child list.
- *
- * It is hoped that the resulting output portrays the tree structure
- * clearly and unambiguously.
  */
 
 #include <vector>

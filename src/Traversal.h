@@ -44,7 +44,7 @@ namespace VisitingParseTree {
  * TODO: enforce
  */
 /**
- * @brief Basic depth-first in-order tree traversal for \t Node and its
+ * @brief Basic depth-first in-order tree traversal for \c Node and its
  *        subclasses.
  *
  * A traversal recurses a parse tree depth first, entering a node, traversing
