@@ -36,6 +36,10 @@
 #include <string>
 
 namespace VisitingParseTree {
+
+/**
+ * @brief Base class for functions that are applied attribute map entries.
+ */
 class AttributeFunction {
 public:
   virtual ~AttributeFunction() = default;

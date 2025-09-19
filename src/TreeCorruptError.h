@@ -21,6 +21,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @brief Thrown when the tree corruption is detected.
+ *
+ */
 #ifndef TREECORRUPTERROR_H_
 #define TREECORRUPTERROR_H_
 
@@ -30,9 +34,9 @@
 
 namespace VisitingParseTree {
 
-/*
- * Thrown when an operation detects tree corruption, e.g.
- * broken parent/child linkages.
+/**
+ * @brief Thrown when an operation detects tree corruption,
+ *        e.g. a broken parent/child linkage.
  */
 class TreeCorruptError : public TreeException {
 

@@ -33,8 +33,9 @@ is instance-based, i.e. a node can only equal itself.
 *  `Node` provides basic node functionality
   * Support for factories
   * Manipulate trees, including adding, disconnecting, and excising nodes
-  * Copy a node copies
-  * Access node characteristics including type name, parent, children
+  * Copy a node
+  * Access node characteristics including type name, node factory, 
+    parent, children
 * `Host` extends 'Node' to support `dynamic_cast`-based
   double dispatch.
 * `AttrNode` extends 'Host' to support arbitrary 
@@ -45,8 +46,12 @@ is instance-based, i.e. a node can only equal itself.
 
 <!-- TODO(emintz): link to details -->
 
-`BaseAttrNode`, a thin subclass of 
-`AttrNode<BaseAttrNode>` is a convenience `AttrNode<BaseAttrNode>` non-templated subclass
-that provides convenience methods that support generated code.
-It also provides the double dispatch method of last resort that supports
-"if all else fails" node type-specific procesing.
+`BaseAttrNode` is a non-templated inherited by all generated node classes.
+In addition to the node class, it provides the root of the `Supplier
+concrete generated nodes' suppliers, which the node generator emits along
+with the nodes themselves. It also declares `BaseAttrNodeVisitor`, the
+`BaseAttrNode`-specific visitor interface which, together with the 
+`BaseAttrNode::accept()` implementation, supports `BaseAttrNode`-specific visitation.
+This provides a "visitor of last resort", meaning that a visitor that
+inherits `BaseAttrNodeVisitor` provides default processing for nodes not
+targeted by narrowly targeted node processors.

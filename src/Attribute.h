@@ -39,11 +39,15 @@
 namespace VisitingParseTree {
 
 /**
- * @brief Base class for attribute types, which are also used
- * as keys in an std::unordered:map. Note that subclass
- * MUST be static const and allocated during declaration.
+ * @brief Base class for attribute types, which are used
+ * as keys in an std::unordered:map of std::string values.
  *
- * TODO: move hashing to base class (low priority)
+ * Subtype constructors \b MUST be \c private and
+ * all instances \b MUST be static const. Application
+ * code \b MUST \b NOT be able to allocate additional
+ * instances.
+ *
+ * TODO: move hashing to \c BaseAttribute (low priority)
  */
 class Attribute : public BaseAttribute {
 
@@ -52,7 +56,7 @@ class Attribute : public BaseAttribute {
 
 protected:
   /**
-   * Construct an Attribute instance
+   * @brief Construct an Attribute instance
    *
    * @param name the instance's name, which __should__ be globally unique
    */

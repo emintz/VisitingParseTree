@@ -21,6 +21,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file VisitingAction.h
+ *
+ * @brief A \c NodeAction that applies a \c Visitor to nodes
+ */
 #ifndef SRC_VISITINGACTION_H_
 #define SRC_VISITINGACTION_H_
 
@@ -31,9 +36,15 @@
 
 namespace VisitingParseTree {
 
-/*
- * An action that applies a visitor to nodes. The visitor
- * is set at construction. Note that T MUST extend Host.
+/**
+ * @brief An action that applies a visitor to nodes.
+ *
+ * A \VisitingParseTree adapts a \c Visitor for use by a
+ * \c Traversal. The \c Visitor is set at construction.
+ *
+ * @tparam T node class
+ *
+ * \see Host for restrictions on \c T.
  */
 template <typename T> class VisitingAction : public NodeAction<T> {
   Visitor *visitor_;

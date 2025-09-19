@@ -20,6 +20,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+/**
+ * @file VisitingTraversal.h
+ *
+ * A tree traversal that applies visitors to encountered nodes
+ */
 
 #ifndef SRC_VISITINGTRAVERSAL_H_
 #define SRC_VISITINGTRAVERSAL_H_
@@ -43,6 +48,12 @@ namespace VisitingParseTree {
  *
  * TODO: enforce.
  */
+/**
+ * @brief traverses a tree of \c Host<T> applying entry and exit
+ *        visitors to all encountered nodes
+ *
+ * @tparam T node class, which must inherit \c Host<T>
+ */
 template <typename T> class VisitingTraversal {
   VisitingAction<T> on_entry_;
   VisitingAction<T> on_exit_;
@@ -51,22 +62,33 @@ template <typename T> class VisitingTraversal {
 
 public:
 
+  /**
+   * Constructor
+   *
+   * @param on_entry \c Visitor to apply on node entry. Does nothing
+   *                 if \c NULL.
+   * @param on_exit \c Visitor to apply on node exit. Does nothing if
+   *                \c NULL.
+   * @param before_descent action to take after applying the entry visitor
+   *                       and before processing the first child.
+   * @param after_ascent action to take between processing a node's last
+   *                     and applying the exit visitor.
+   */
   VisitingTraversal(
       Visitor *on_entry,
       Visitor *on_exit,
-      VoidFunction& after_descent = VacuousVoidFunction::INSTANCE,
-      VoidFunction& before_ascent = VacuousVoidFunction::INSTANCE) :
+      VoidFunction& before_descent = VacuousVoidFunction::INSTANCE,
+      VoidFunction& after_ascent = VacuousVoidFunction::INSTANCE) :
           on_entry_(on_entry),
           on_exit_(on_exit),
           traversal_(
               on_entry_,
               on_exit_,
-              after_descent,
-              before_ascent) {
+              before_descent,
+              after_ascent) {
   }
 
-  virtual ~VisitingTraversal() {
-  }
+  virtual ~VisitingTraversal() = default;
 
   virtual TraversalStatus operator() (std::shared_ptr<T> root) {
     return traversal_(root);

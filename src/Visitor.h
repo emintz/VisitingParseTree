@@ -21,6 +21,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file Visitor.h
+ *
+ * @brief Marker interface for all node visitors
+ */
+
 #ifndef VISITOR_H_
 #define VISITOR_H_
 
@@ -30,7 +36,13 @@ namespace VisitingParseTree {
 
 /*
  * Marker interface for node visitors. All node visitors
- * MUST inherit frm this class.
+ * MUST inherit this class.
+ */
+/**
+ * @brief Node visitor marker interface
+ *
+ * A well known class for visitors, the type passed to `Host::accept()`.
+ * \c Node visitors \b must inherit this interface.
  */
 class Visitor {
 protected:

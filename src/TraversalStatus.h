@@ -57,7 +57,7 @@ enum class TraversalStatus {
    * \b WITHOUT invoking additional actions. In particular,
    * if if returned on entry, the bypass both the node's
    * children AND this node's exit processing. \b MIGHT indicate an
-   * error or might simply mean that further processing
+   * error or \b might simply mean that further processing
    * is not required.
    */
   CANCEL,         /** Cancel the traversal immediately without further processing */

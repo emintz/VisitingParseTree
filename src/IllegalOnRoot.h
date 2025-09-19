@@ -21,6 +21,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file IllegalOnRoot.h
+ *
+ * @brief Exception thrown when an application invokes method that
+ *        is not valid at root.
+ */
 #ifndef ILLEGALONROOT_H_
 #define ILLEGALONROOT_H_
 
@@ -34,6 +40,15 @@ namespace VisitingParseTree {
  * Thrown when a user attempts an unsupported operation
  * (generally an operation involving the parent) on a
  * root node.
+ */
+
+/**
+ * @brief Thrown when the application invokes a method that
+ *        is not supported on root nodes.
+ *
+ * Some operations, typically those like `Node::append_sibling()` that
+ * cannot be performed on a root node. These methods throw this
+ * exception when invoked on a root node.
  */
 class IllegalOnRoot : public TreeException {
 
