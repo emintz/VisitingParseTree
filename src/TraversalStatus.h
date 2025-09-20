@@ -60,7 +60,7 @@ enum class TraversalStatus {
    * error or \b might simply mean that further processing
    * is not required.
    */
-  CANCEL,         /** Cancel the traversal immediately without further processing */
+  CANCEL,
 };
 
 }  /* Namespace VisitingParseTree */

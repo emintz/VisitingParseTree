@@ -46,12 +46,10 @@ namespace VisitingParseTree {
  */
 class Visitor {
 protected:
-  Visitor(void) {
-  }
+  Visitor(void) = default;
 
 public:
-  virtual ~Visitor() {
-  }
+  virtual ~Visitor() = default;
 };
 
 }  /* namespace VisitingParseTree */
