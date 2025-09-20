@@ -51,7 +51,9 @@ public:
    * @param Attribute type, the key in the containing node's attribute map
    * @param Attribute value
    */
-  virtual void operator() (const Attribute* const&, const std::string&) = 0;
+  virtual void operator() (
+      const Attribute* const& type,
+      const std::string& value) = 0;
 };
 
 } /* namespace VisitingParseTree */

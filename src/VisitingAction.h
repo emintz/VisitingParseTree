@@ -39,7 +39,7 @@ namespace VisitingParseTree {
 /**
  * @brief An action that applies a visitor to nodes.
  *
- * A \VisitingParseTree adapts a \c Visitor for use by a
+ * A \c VisitingParseTree adapts a \c Visitor for use by a
  * \c Traversal. The \c Visitor is set at construction.
  *
  * @tparam T node class

@@ -117,7 +117,9 @@ public:
   }
 };
 
-
+/**
+ * @brief Holds state during printing
+ */
 class Context {
   friend class AscendAction;
   friend class VisitingParseTree::AttrNodePrinter;
@@ -129,6 +131,17 @@ class Context {
     current_child_count_(0) {
   }
 
+  /**
+   * @brief Processes a descent
+   *
+   * Adjusts the context after a node has been entered and before
+   * its first tree is processed. The descent processor delegates
+   * to this method.
+   *
+   * \c descend() \b must \b not be
+   * invoked after a leaf has been entered. Fortunately, this
+   * behavior is baked into the traversal.
+   */
   void descend() {
     if (!levels_.empty()) {
       levels_.back().set_top(false);
@@ -136,6 +149,16 @@ class Context {
     levels_.emplace_back(current_child_count_);
   }
 
+  /**
+   * @brief Processes an ascent
+   *
+   * Adjusts a context after a node's children has been processed and
+   * before the node is exited. The ascent processor delegates to this method.
+   *
+   * \c ascend() \b must \b not be
+   * invoked before exiting a leaf. Fortunately, this is baked
+   * into the traversal.
+   */
   void ascend() {
     levels_.pop_back();
     if (!levels_.empty()) {
@@ -143,11 +166,46 @@ class Context {
     }
   }
 
+  /**
+   * @brief Stores the current node's number of children
+   *
+   * Note that in the following tree print:
+   *
+   *        RootNode []
+   *         +--PlusNode []
+   *             +--TimesNode []
+   *             |   +--TimesNode []
+   *             |   |   +--IntegerNode [VALUE->17 ]
+   *             |   |   +--IntegerNode [VALUE->19 ]
+   *             |   +--IntegerNode [VALUE->4 ]
+   *             +--MinusNode []
+   *                 +--IntegerNode [VALUE->5 ]
+   *                 +--DivNode []
+   *                     +--IntegerNode [VALUE->6 ]
+   *                     +--IntegerNode [VALUE->3 ]
+   *
+   * \c TimesNode children are prefixed differently than \c MinusNode
+   * children. That's because the \c MinusNode is the \b last child of
+   * its parent \c PlusNode. The traversal uses a node's child count
+   * to control this.
+   *
+   * @param child_count the number of children owned by the
+   *        node being printed.
+   */
   void current_child_count(int child_count) {
     current_child_count_ = child_count;
   }
 
 public:
+  /**
+   * @brief prints this context
+   *
+   * Prints the prefix for the current node. Note that this operation
+   * does \b not print the node itself.
+   *
+   * @param stream std::ostream to receive the output
+   * @return \c stream, for chaining
+   */
   std::ostream&  operator<< (std::ostream& stream) {
     for (
         auto iter = levels_.begin();
@@ -159,40 +217,53 @@ public:
   }
 };
 
+/**
+ * @brief Standard print operation
+ *
+ * Invokes \c Context::operator<<(std::stream) to print a node's
+ * prefix.
+ *
+ * @param stream receives the output
+ * @param context the context to print
+ * @return \b stream
+ */
 std::ostream& operator<<(std::ostream& stream, Context& context) {
   return context.operator<<(stream);
 }
 
+/**
+ * @brief Traversal descent action
+ */
 class DescendAction : public VoidFunction {
   friend class VisitingParseTree::AttrNodePrinter;
+
+  /**
+   * @brief Traversal state
+   *
+   * \c context_ actually handles descent
+   */
   Context& context_;
+
   DescendAction(Context& context) :
     context_(context) {
   }
 
 public:
+  /**
+   * @brief invoked between entry and child processing unless the
+   *        entered node is a leaf.
+   *
+   * Delegates to the associated \b Context. \c () must not be invoked
+   * for leaves. Fortunately, tree traversals comply as a matter of course.
+   */
   virtual void operator() () override {
     context_.descend();
   }
 };
 
-class AttributePrinter : public AttributeFunction {
-  friend class OnEntry;
-
-  std::ostream& stream_;
-
-  AttributePrinter(std::ostream& stream) :
-    stream_(stream) {
-  }
-
-public:
-  virtual void operator() (
-      const Attribute* const& attribute,
-      const std::string& value) override {
-    stream_ << attribute->name() << "->" << value << " ";
-  }
-};
-
+/**
+ * @brief Ascent action
+ */
 class AscendAction : public VoidFunction {
   friend class VisitingParseTree::AttrNodePrinter;
   Context& context_;
@@ -201,22 +272,92 @@ class AscendAction : public VoidFunction {
   }
 
 public:
+  /**
+   * @brief Invoked between exiting the last child node and exiting
+   *        its parent.
+   *
+   * Delegates to the traversal context. \c () must not be invoked for
+   * leaves. Fortunately, tree traversals comply as a matter of course.
+   */
   virtual void operator() () override {
     context_.ascend();
   }
 };
 
-class OnEntry : public NodeAction<BaseAttrNode> {
-  friend class VisitingParseTree::AttrNodePrinter;
-  Context& context_;
+/**
+ * @brief Attribute printer
+ *
+ * Passed to \c AttrNode::for_all_attributes() to print the invoked
+ * node's attributes.
+ */
+class AttributePrinter : public AttributeFunction {
+  friend class OnEntry;
+
   std::ostream& stream_;
 
+  /**
+   * @brief Constructor
+   *
+   * @param stream destination for the attribute values
+   */
+  AttributePrinter(std::ostream& stream) :
+    stream_(stream) {
+  }
+
+public:
+  /**
+   * @brief Prints an attribute, value pair
+   *
+   * @param attribute attribute time
+   * @param value attribute's \c std::string value
+   */
+  virtual void operator() (
+      const Attribute* const& attribute,
+      const std::string& value) override {
+    stream_ << attribute->name() << "->" << value << " ";
+  }
+};
+
+/**
+ * @brief node entry processor
+ *
+ * Writes a formatted representation of the entered node to
+ * an output stream
+ */
+class OnEntry : public NodeAction<BaseAttrNode> {
+  friend class VisitingParseTree::AttrNodePrinter;
+
+  /**
+   * @brief traversal state
+   */
+  Context& context_;
+
+  /**
+   * @brief receives the formatted output
+   */
+  std::ostream& stream_;
+
+  /**
+   * @brief Constructor
+   *
+   * @param context traversal context
+   * @param stream receives the formatted output
+   */
   OnEntry(Context& context, std::ostream& stream) :
     context_(context),
     stream_(stream) {
   }
 public:
-  virtual TraversalStatus operator()(std::shared_ptr<BaseAttrNode> node) override {
+  /**
+   * @brief Node entry processor
+   *
+   * Prints the newly encountered node
+   *
+   * @param node the node that the traversal has entered
+   * @return \c TraversalStatus::CONTINUE, always
+   */
+  virtual TraversalStatus operator() (
+      std::shared_ptr<BaseAttrNode> node) override {
     context_.current_child_count(node->child_count());
     stream_ << context_ << node->type_name() << " [";
     AttributePrinter attribute_printer(stream_);
@@ -227,10 +368,21 @@ public:
   }
 };
 
+/**
+ * @brief vacuous (i.e. place holder) node exit processor
+ */
 class OnExit : public NodeAction<BaseAttrNode> {
   friend class VisitingParseTree::AttrNodePrinter;
   OnExit() = default;
 public:
+  /**
+   * @brief Vacuous (i.e. no-op) node exit processor
+   *
+   * Does nothing other than returning \c TraversalStatus::CONTINUE
+   *
+   * @param node exited node
+   * @return \c TraversalStatus::CONTINUE always
+   */
   virtual TraversalStatus operator()(std::shared_ptr<BaseAttrNode> node) {
     return TraversalStatus::CONTINUE;
   }

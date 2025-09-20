@@ -80,7 +80,7 @@ namespace VisitingParseTree {
 /**
  * @brief Pretty prints a tree of \c BaseAttrNode nodes
  *
- * Thin wrappe3r around a \c TreeTraversal that pretty-prints a
+ * Thin wrapper around a \c TreeTraversal that pretty-prints a
  * \c BaseAttrNode tree
  */
 class AttrNodePrinter {
@@ -97,8 +97,8 @@ public:
   /**
    * @brief pretty prints a \c BaseAttrNode tree
    *
-   * @param root[in] the tree to print. Note that printing a tree does
-   *                 not change it
+   * @param root the tree to print. Note that printing a tree does
+   *        not change it
    * @param output_stream[in] receives the pretty printed tree
    */
   void print(std::shared_ptr<BaseAttrNode> root, std::ostream& output_stream);

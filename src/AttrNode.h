@@ -72,7 +72,14 @@ static const std::string empty_string;
  *           \c AttrNode<T>
  */
 template <typename T> class AttrNode : public Host<T> {
-  std::unordered_map<const Attribute*, std::string> attributes_; /** Attributes */
+  /**
+   * @brief Attributes of this node
+   *
+   * An attribute is a pair containing its type and its value, often
+   * written (type, value). The type is a an instance of a class that
+   * inherits \c Attribute; the value is a \c std::string.
+   */
+  std::unordered_map<const Attribute*, std::string> attributes_;
 
 protected:
   AttrNode() = default;
@@ -135,6 +142,7 @@ public:
       void set_destination(std::shared_ptr<T> destination) {
         destination_ = destination;
       }
+
       /**
        * @brief copies an attribute to the destination node
        *

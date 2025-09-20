@@ -22,7 +22,7 @@
  */
 
 /**
- * @file TreeException
+ * @file TreeException.h
  *
  * @brief Base class for all exceptions thrown by nodes
  */

@@ -90,6 +90,16 @@ public:
 
   virtual ~VisitingTraversal() = default;
 
+  /**
+   * @brief traverses a tree
+   *
+   * @param root start of the traversal; root of the traversed tree.
+   *             Note that a traversal can start at any node; the
+   *             starting node could be an interior node of a containing
+   *             tree.
+   *
+   * @return traversal status
+   */
   virtual TraversalStatus operator() (std::shared_ptr<T> root) {
     return traversal_(root);
   }
